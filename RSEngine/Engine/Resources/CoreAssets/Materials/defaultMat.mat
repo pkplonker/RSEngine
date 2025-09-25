@@ -1,0 +1,12 @@
+{
+  "Type": "Engine.Material, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
+  "Data": {
+    "GUID": "9b15ce0f-978b-43ff-a42d-0f5530f45efa",
+    "ShaderGUID": "00000000-0000-0000-0000-000000000000",
+    "AlbedoGUID": "00000000-0000-0000-0000-000000000000",
+    "NormalGUID": "00000000-0000-0000-0000-000000000000",
+    "MetallicGUID": "00000000-0000-0000-0000-000000000000",
+    "RoughnessGUID": "00000000-0000-0000-0000-000000000000",
+    "AOGUID": "00000000-0000-0000-0000-000000000000"
+  }
+}

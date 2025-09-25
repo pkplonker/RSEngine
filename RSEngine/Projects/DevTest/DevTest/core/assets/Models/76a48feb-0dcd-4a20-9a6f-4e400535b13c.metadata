@@ -1,0 +1,9 @@
+{
+  "Path": "core\\assets\\Models\\Plane.fbx",
+  "GUID": "76a48feb-0dcd-4a20-9a6f-4e400535b13c",
+  "MetaDataVersion": 1,
+  "MetadataType": 3,
+  "Name": "Plane.fbx",
+  "AbsolutePath": "C:\\Users\\pkplo\\Documents\\CodeProjects\\LunaEngine\\LunaEngine\\Projects\\Test2\\Test2\\core\\assets\\Models\\Plane.fbx",
+  "MetadataTypeAsType": "Engine.Mesh, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}

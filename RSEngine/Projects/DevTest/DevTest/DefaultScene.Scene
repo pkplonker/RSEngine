@@ -1,0 +1,74 @@
+{
+  "New Cube (1)": {
+    "transform": {
+      "ChildrenGuids": [],
+      "GUID": "ec133f64-f910-45e7-95a6-d4562f181570",
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": -32.0
+      },
+      "Scale": {
+        "X": 1.0,
+        "Y": 1.0,
+        "Z": 1.0
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0,
+        "W": 1.0,
+        "IsIdentity": true
+      }
+    },
+    "Name": "New Cube (1)",
+    "Enabled": true,
+    "components": {
+      "Engine.MeshFilter, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
+        "meshes": [
+          "b8f7c445-ec4b-4bdc-84e2-f7c3fa9334b7"
+        ]
+      },
+      "Engine.MeshRenderer, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
+        "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efa"
+      }
+    }
+  },
+  "DEFAULT_NAME (1)": {
+    "transform": {
+      "ChildrenGuids": [],
+      "GUID": "ad0a800a-8e98-4989-bd3a-4b3691c20b5c",
+      "Position": {
+        "X": 0.0,
+        "Y": -7.0,
+        "Z": 0.0
+      },
+      "Scale": {
+        "X": 1.0,
+        "Y": 1.0,
+        "Z": 1.0
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0,
+        "W": 1.0,
+        "IsIdentity": true
+      }
+    },
+    "Name": "DEFAULT_NAME (1)",
+    "Enabled": true,
+    "components": {
+      "Engine.PerspectiveCamera, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
+        "FieldOfView": 1.0471976,
+        "GameObject": {
+          "Name": "DEFAULT_NAME (1)",
+          "Enabled": true
+        },
+        "AspectRatio": 1.6,
+        "NearPlaneDistance": 0.1,
+        "FarPlaneDistance": 200.0
+      }
+    }
+  }
+}

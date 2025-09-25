@@ -1,0 +1,9 @@
+{
+  "Path": "core\\assets\\Shaders\\Unlit.glsl",
+  "GUID": "8afb73e6-9651-4922-9f81-0c5379efdc06",
+  "MetaDataVersion": 1,
+  "MetadataType": 2,
+  "Name": "Unlit.glsl",
+  "AbsolutePath": "C:\\Users\\pkplo\\Documents\\CodeProjects\\LunaEngine\\LunaEngine\\Projects\\Test2\\Test2\\core\\assets\\Shaders\\Unlit.glsl",
+  "MetadataTypeAsType": "Engine.Shader, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}

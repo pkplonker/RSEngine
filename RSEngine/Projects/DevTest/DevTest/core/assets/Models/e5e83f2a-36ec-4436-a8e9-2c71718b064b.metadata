@@ -1,0 +1,9 @@
+{
+  "Path": "core\\assets\\Models\\Sphere.fbx",
+  "GUID": "e5e83f2a-36ec-4436-a8e9-2c71718b064b",
+  "MetaDataVersion": 1,
+  "MetadataType": 3,
+  "Name": "Sphere.fbx",
+  "AbsolutePath": "C:\\Users\\pkplo\\Documents\\CodeProjects\\LunaEngine\\LunaEngine\\Projects\\Test2\\Test2\\core\\assets\\Models\\Sphere.fbx",
+  "MetadataTypeAsType": "Engine.Mesh, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}

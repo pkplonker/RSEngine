@@ -1,0 +1,9 @@
+{
+  "Path": "core\\assets\\Models\\Cube.fbx",
+  "GUID": "b8f7c445-ec4b-4bdc-84e2-f7c3fa9334b7",
+  "MetaDataVersion": 1,
+  "MetadataType": 3,
+  "Name": "Cube.fbx",
+  "AbsolutePath": "C:\\Users\\pkplo\\Documents\\CodeProjects\\LunaEngine\\LunaEngine\\Projects\\Test2\\Test2\\core\\assets\\Models\\Cube.fbx",
+  "MetadataTypeAsType": "Engine.Mesh, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}

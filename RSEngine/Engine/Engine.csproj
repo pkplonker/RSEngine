@@ -1,0 +1,106 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="Silk.NET" Version="2.20.0" />
+      <PackageReference Include="Silk.NET.Assimp" Version="2.20.0" />
+      <PackageReference Include="Silk.NET.Core" Version="2.20.0" />
+      <PackageReference Include="Silk.NET.Maths" Version="2.20.0" />
+      <PackageReference Include="Silk.NET.OpenGL" Version="2.20.0" />
+      <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.20.0" />
+      <PackageReference Include="StbImageSharp" Version="2.27.13" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Resources\Shaders\UnlitFragment.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Shaders\UnlitVertex.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Textures\test.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Models\TestCube.obj">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Models\TestSphere.obj">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Models\Plane.fbx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+        <None Update="Resources\Models\Cube.fbx">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\Models\Sphere.fbx">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+      <None Update="Resources\Core\FullLogo.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Core\TransparentLuna.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Core\TransparentLunaSmall.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Shaders\gridFragment.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Shaders\gridf.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Shaders\gridv.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Shaders\PBRFragment.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Shaders\PBRVertex.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Textures\uvgrid.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Core\Models\Plane.fbx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Shaders\Unlit.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Models\TestSphere.obj">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Models\TestCube.obj">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Models\Plane.fbx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Materials\defaultMat.mat">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Shaders\Boing.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Models\Cube.fbx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Models\Sphere.fbx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\Shaders\grid.glsl" />
+    </ItemGroup>
+
+</Project>
