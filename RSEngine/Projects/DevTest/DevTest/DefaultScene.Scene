@@ -4,9 +4,9 @@
       "ChildrenGuids": [],
       "GUID": "ec133f64-f910-45e7-95a6-d4562f181570",
       "Position": {
-        "X": 0.0,
+        "X": 2.0,
         "Y": 0.0,
-        "Z": -32.0
+        "Z": 0.0
       },
       "Scale": {
         "X": 0.01,
@@ -31,6 +31,41 @@
       },
       "Engine.MeshRenderer, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
         "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efc"
+      }
+    }
+  },
+  "New Cube (2)": {
+    "transform": {
+      "ChildrenGuids": [],
+      "GUID": "c82057dc-84a0-4cb1-9510-d3626a672afe",
+      "Position": {
+        "X": -2.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "Scale": {
+        "X": 0.01,
+        "Y": 0.01,
+        "Z": 0.01
+      },
+      "Rotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0,
+        "W": 1.0,
+        "IsIdentity": true
+      }
+    },
+    "Name": "New Cube (2)",
+    "Enabled": true,
+    "components": {
+      "Engine.MeshFilter, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
+        "meshes": [
+          "b8f7c445-ec4b-4bdc-84e2-f7c3fa9334b7"
+        ]
+      },
+      "Engine.MeshRenderer, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
+        "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efb"
       }
     }
   }
