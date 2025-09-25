@@ -30,7 +30,7 @@
         ]
       },
       "Engine.MeshRenderer, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
-        "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efa"
+        "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efb"
       }
     }
   },

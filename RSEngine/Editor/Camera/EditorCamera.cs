@@ -46,8 +46,20 @@ public class EditorCamera : IEditorCamera
 		return Matrix4x4.CreateLookAt(position, position + front, up);
 	}
 
-	public Matrix4x4 GetProjection() =>
-		Matrix4x4.CreatePerspectiveFieldOfView(MathExtensions.DegreesToRadians(zoom), AspectRatio, 0.1f, 100.0f);
+public Matrix4x4 GetProjection() =>
+    CreatePerspectiveFieldOfViewGL(MathExtensions.DegreesToRadians(zoom), AspectRatio, 0.1f, 100.0f);
 
+public static Matrix4x4 CreatePerspectiveFieldOfViewGL(float fov, float aspect, float zNear, float zFar)
+{
+	float yScale = 1.0f / MathF.Tan(fov / 2.0f);
+	float xScale = yScale / aspect;
+
+	return new Matrix4x4(
+		xScale, 0,      0,                               0,
+		0,      yScale, 0,                               0,
+		0,      0,     -(zFar + zNear) / (zFar - zNear), -1,
+		0,      0,     -(2 * zFar * zNear) / (zFar - zNear), 0
+	);
+}
 	public virtual void SetActive(bool active, IInputController input) { }
 }
