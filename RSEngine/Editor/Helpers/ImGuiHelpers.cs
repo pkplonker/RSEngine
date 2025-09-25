@@ -50,7 +50,7 @@ public static class ImGuiHelpers
 			$"##PosZ{trans.GetHashCode()}",
 			"Change Position Z",
 			() => trans.Position.Z,
-			value => trans.Position = new Vector3(trans.Position.X, value, trans.Position.Z),
+			value => trans.Position = new Vector3(trans.Position.X, trans.Position.Y,value),
 			stretch: false);
 		ImGui.PopStyleColor();
 
