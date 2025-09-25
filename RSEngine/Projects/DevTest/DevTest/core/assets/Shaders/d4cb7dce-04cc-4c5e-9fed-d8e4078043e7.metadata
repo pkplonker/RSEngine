@@ -1,0 +1,9 @@
+{
+  "Path": "core\\assets\\Shaders\\unlit.glsl",
+  "GUID": "d4cb7dce-04cc-4c5e-9fed-d8e4078043e7",
+  "MetaDataVersion": 1,
+  "MetadataType": 2,
+  "Name": "unlit.glsl",
+  "AbsolutePath": "C:\\Users\\pkplo\\Documents\\CodeProjects\\RSEngine\\RsEngine\\Projects\\DevTest\\DevTest\\core\\assets\\Shaders\\unlit.glsl",
+  "MetadataTypeAsType": "Engine.Shader, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}
