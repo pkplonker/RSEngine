@@ -132,30 +132,35 @@ public class PropertyDrawer : IPropertyDrawer
 					DrawObject(item, null, depth);
 				}
 			}
-			else
+			else if (memberInfo?.MemberType == typeof(Guid))
 			{
-				if (memberInfo?.MemberType == typeof(Guid))
-				{
-					var resGuid = memberInfo.GetCustomAttribute<ResourceGuidAttribute>();
+				var resGuid = memberInfo.GetCustomAttribute<ResourceGuidAttribute>();
 
-					if (resGuid != null)
+				if (resGuid != null)
+				{
+					ResourceManager.Instance.TryGetResourceByGuid((Guid) memberInfo.GetValue(component),
+						out var resource);
+					if (CustomEditorLoader.TryGetEditor(resGuid.ResourceGuidType, out var editor))
 					{
-						ResourceManager.Instance.TryGetResourceByGuid((Guid) memberInfo.GetValue(component),
-							out var resource);
-						if (CustomEditorLoader.TryGetEditor(resGuid.ResourceGuidType, out var editor))
-						{
-							editor.Draw(resource, component, memberInfo, renderer, depth);
-						}
-					}
-					else if (CustomEditorLoader.TryGetEditor(memberInfo.GetType(), out var editor))
-					{
-						editor.Draw(memberInfo.GetValue(component), component, memberInfo, renderer);
-					}
-					else
-					{
-						ImGui.Text($"{memberInfo.Name}: {value}");
+						editor.Draw(resource, component, memberInfo, renderer, depth);
 					}
 				}
+				else if (CustomEditorLoader.TryGetEditor(memberInfo.GetType(), out var editor))
+				{
+					editor.Draw(memberInfo.GetValue(component), component, memberInfo, renderer);
+				}
+				else
+				{
+					ImGui.Text($"{memberInfo.Name}: {value}");
+				}
+			}
+			else if (memberInfo?.MemberType == typeof(Vector4))
+			{
+				ImGuiHelpers.DrawVec4Color(memberInfo.Name, (Vector4)memberInfo.GetValue(component),x=>memberInfo.SetValue(component, x));
+			}
+			else
+			{
+				Logger.Error($"Unsupported member type. {memberInfo?.MemberType} for property output");
 			}
 		}
 		catch (Exception e)

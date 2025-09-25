@@ -11,7 +11,7 @@ public static class ProjectManager
     private static IProject? activeProject;
 
     private const string TestProjectPath =
-        @"C:\Users\pkplo\Documents\CodeProjects\LunaEngine\LunaEngine\Projects\Test2\Test2\Test2.LunaProject";
+        @"C:\Users\pkplo\Documents\CodeProjects\RSEngineGit\RSEngine\Projects\DevTest\DevTest\DevTest.RSProject";
 
     public static event Action<IProject?> ProjectChanged;
     public static event Action<IProject?> ProjectCreated;

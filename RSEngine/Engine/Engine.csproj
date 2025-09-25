@@ -73,9 +73,6 @@
       <None Update="Resources\Core\Models\Plane.fbx">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="Resources\CoreAssets\Shaders\Unlit.glsl">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="Resources\CoreAssets\Models\TestSphere.obj">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
@@ -85,7 +82,7 @@
       <None Update="Resources\CoreAssets\Models\Plane.fbx">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
-      <None Update="Resources\CoreAssets\Materials\defaultMat.mat">
+      <None Update="Resources\CoreAssets\Materials\boingmat.mat">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Resources\CoreAssets\Shaders\Boing.glsl">

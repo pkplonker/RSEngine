@@ -82,7 +82,6 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
 		controls.Add(new HierarchyPanel(this, inputController), true);
 		var inspector = new PropertiesPanel(this);
 		controls.Add(inspector, true);
-		controls.Add(new ObjectPreviewPanel(inspector, inputController, renderer), true);
 		controls.Add(new ImGuiLoggerWindow(), true);
 		controls.Add(new MetadataPanel(), true);
 		controls.Add(new ProjectPanel(inputController), true);

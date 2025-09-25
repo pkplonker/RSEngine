@@ -63,7 +63,8 @@ public class Renderer : IRenderer
 	private void DrawScene(IRenderTarget renderTarget, IScene scene)
 	{
 		renderTarget.Bind(Gl);
-		Gl.Enable(EnableCap.DepthTest);
+		//Gl.Enable(EnableCap.DepthTest);
+		Gl.Disable(GLEnum.CullFace);
 		Gl.ClearColor(clearColor);
 		Gl.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
 		if (scene.ActiveCamera == null)

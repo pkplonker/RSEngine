@@ -1,152 +1,120 @@
 using System.Numerics;
-using Editor.Controls;
 using Editor.Properties;
 using Engine;
 using ImGuiNET;
-using System.Windows.Forms;
 
 namespace Editor;
 
 public static class ImGuiHelpers
 {
-	public static void DrawTransform(ITransform trans)
-	{
-		ImGui.Separator();
-		float labelWidth = ImGui.CalcTextSize("Rotation").X + 20.0f;
-		float totalWidth = ImGui.GetContentRegionAvail().X - labelWidth;
-		float fieldWidth = totalWidth / 3.0f - ImGui.GetStyle().ItemInnerSpacing.X;
+    public static void DrawTransform(ITransform trans)
+    {
+        ImGui.Separator();
 
-		ImGui.Text("Position");
-		ImGui.SameLine(labelWidth);
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(1, 0, 0, 1));
-		ImGui.Text("X");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("X").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##PosX{trans.GetHashCode()}",
-			"Change Position X",
-			() => trans.Position.X,
-			value => trans.Position = new Vector3(value, trans.Position.Y, trans.Position.Z),
-			stretch: false);
-		ImGui.PopStyleColor();
-		ImGui.SameLine();
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 1, 0, 1));
-		ImGui.Text("Y");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("Y").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##PosY{trans.GetHashCode()}",
-			"Change Position Y",
-			() => trans.Position.Y,
-			value => trans.Position = new Vector3(trans.Position.X, value, trans.Position.Z),
-			stretch: false);
-		ImGui.PopStyleColor();
-		ImGui.SameLine();
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 0, 1, 1));
-		ImGui.Text("Z");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("Z").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##PosZ{trans.GetHashCode()}",
-			"Change Position Z",
-			() => trans.Position.Z,
-			value => trans.Position = new Vector3(trans.Position.X, value, trans.Position.Z),
-			stretch: false);
-		ImGui.PopStyleColor();
+        DrawVec3("Position", trans.Position, newPos => trans.Position = newPos);
 
-		ImGui.Text("Rotation");
-		ImGui.SameLine(labelWidth);
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(1, 0, 0, 1));
-		ImGui.Text("X");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("X").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##RotX{trans.GetHashCode()}",
-			"Change Rotation X",
-			() => trans.Rotation.ToEulerDegrees().X,
-			value => trans.Rotation = new Vector3(value, trans.Rotation.Y, trans.Rotation.Z).ToQuaternionFromDegrees(),
-			stretch: false);
-		ImGui.PopStyleColor();
-		ImGui.SameLine();
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 1, 0, 1));
-		ImGui.Text("Y");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("Y").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##RotY{trans.GetHashCode()}",
-			"Change Rotation Y",
-			() => trans.Rotation.ToEulerDegrees().Y,
-			value => trans.Rotation = new Vector3(trans.Rotation.X, value, trans.Rotation.Z).ToQuaternionFromDegrees(),
-			stretch: false);
-		ImGui.PopStyleColor();
-		ImGui.SameLine();
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 0, 1, 1));
-		ImGui.Text("Z");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("Z").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##RotZ{trans.GetHashCode()}",
-			"Change Rotation Z",
-			() => trans.Rotation.ToEulerDegrees().Z,
-			value => trans.Rotation = new Vector3(trans.Rotation.X, trans.Rotation.Y, value).ToQuaternionFromDegrees(),
-			stretch: false);
-		ImGui.PopStyleColor();
+        DrawVec3("Rotation", trans.Rotation.ToEulerDegrees(),
+            newRot => trans.Rotation = newRot.ToQuaternionFromDegrees());
 
-		ImGui.Text("Scale");
-		ImGui.SameLine(labelWidth);
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(1, 0, 0, 1));
-		ImGui.Text("X");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("X").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##ScaleX{trans.GetHashCode()}",
-			"Change Scale X",
-			() => trans.Scale.X,
-			value => trans.Scale = new Vector3(value, trans.Scale.Y, trans.Scale.Z), stretch: false
-		);
-		ImGui.PopStyleColor();
-		ImGui.SameLine();
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 1, 0, 1));
-		ImGui.Text("Y");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("Y").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##ScaleY{trans.GetHashCode()}",
-			"Change Scale Y",
-			() => trans.Scale.Y,
-			value => trans.Scale = new Vector3(trans.Scale.X, value, trans.Scale.Z),
-			stretch: false);
-		ImGui.PopStyleColor();
-		ImGui.SameLine();
-		ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(0, 0, 1, 1));
-		ImGui.Text("Z");
-		ImGui.SameLine();
-		ImGui.SetNextItemWidth(fieldWidth - ImGui.CalcTextSize("Z").X);
-		UndoableImGui.UndoableDragFloat(
-			$"##ScaleZ{trans.GetHashCode()}",
-			"Change Scale Z",
-			() => trans.Scale.Z,
-			value => trans.Scale = new Vector3(trans.Scale.X, trans.Scale.Y, value),
-			stretch: false);
-		ImGui.PopStyleColor();
-	}
+        DrawVec3("Scale", trans.Scale, newScale => trans.Scale = newScale);
+    }
 
-	public static void AddProperty(IMemberAdapter member)
-	{
-		if (ImGui.Button($"Add {member.Name}"))
-		{
-			var result = FileDialog.OpenFileDialog(FileDialog.FilterByType(member.MemberType));
-		}
-	}
+    public static void DrawVec2(string label, Vector2 value, Action<Vector2> setter,
+        float? min = null, float? max = null, float step = 0.1f, float speed = 1.0f)
+    {
+        float labelWidth = ImGui.CalcTextSize(label).X + 20.0f;
+        float totalWidth = ImGui.GetContentRegionAvail().X - labelWidth;
+        float fieldWidth = totalWidth / 2.0f - ImGui.GetStyle().ItemInnerSpacing.X;
+        ImGui.Text(label);
+        ImGui.SameLine();
+        DrawFloatComponent($"X_{label}", "X", value.X, fieldWidth, new Vector4(1, 0, 0, 1),
+            newX => setter(new Vector2(newX, value.Y)), min, max, step, speed);
+        ImGui.SameLine();
+        DrawFloatComponent($"Y_{label}", "Y", value.Y, fieldWidth, new Vector4(0, 1, 0, 1),
+            newY => setter(new Vector2(value.X, newY)), min, max, step, speed);
+    }
 
-	public static bool CenteredButton(string buttonText)
-	{
-		var windowSize = ImGui.GetWindowSize();
-		var buttonSize = ImGui.CalcTextSize(buttonText);
+    public static void DrawVec3(string label, Vector3 value, Action<Vector3> setter,
+        float? min = null, float? max = null, float step = 0.1f, float speed = 1.0f)
+    {
+        float labelWidth = ImGui.CalcTextSize(label).X + 20.0f;
+        float totalWidth = ImGui.GetContentRegionAvail().X - labelWidth;
+        float fieldWidth = totalWidth / 3.0f - ImGui.GetStyle().ItemInnerSpacing.X;
+        ImGui.Text(label);
+        ImGui.SameLine();
+        DrawFloatComponent($"X_{label}", "X", value.X, fieldWidth, new Vector4(1, 0, 0, 1),
+            newX => setter(new Vector3(newX, value.Y, value.Z)), min, max, step, speed);
+        ImGui.SameLine();
+        DrawFloatComponent($"Y_{label}", "Y", value.Y, fieldWidth, new Vector4(0, 1, 0, 1),
+            newY => setter(new Vector3(value.X, newY, value.Z)), min, max, step, speed);
+        ImGui.SameLine();
+        DrawFloatComponent($"Z_{label}", "Z", value.Z, fieldWidth, new Vector4(0, 0, 1, 1),
+            newZ => setter(new Vector3(value.X, value.Y, newZ)), min, max, step, speed);
+    }
 
-		var buttonPosX = (windowSize.X - buttonSize.X) * 0.5f;
-		ImGui.SetCursorPosX(buttonPosX);
+    public static void DrawVec4(string label, Vector4 value, Action<Vector4> setter,
+        float? min = null, float? max = null, float step = 0.1f, float speed = 1.0f)
+    {
+        float labelWidth = ImGui.CalcTextSize(label).X + 20.0f;
+        float totalWidth = ImGui.GetContentRegionAvail().X - labelWidth;
+        float fieldWidth = totalWidth / 4.0f - ImGui.GetStyle().ItemInnerSpacing.X;
+        ImGui.Text(label);
+        ImGui.SameLine();
+        DrawFloatComponent($"X_{label}", "X", value.X, fieldWidth, new Vector4(1, 0, 0, 1),
+            newX => setter(new Vector4(newX, value.Y, value.Z, value.W)), min, max, step, speed);
+        ImGui.SameLine();
+        DrawFloatComponent($"Y_{label}", "Y", value.Y, fieldWidth, new Vector4(0, 1, 0, 1),
+            newY => setter(new Vector4(value.X, newY, value.Z, value.W)), min, max, step, speed);
+        ImGui.SameLine();
+        DrawFloatComponent($"Z_{label}", "Z", value.Z, fieldWidth, new Vector4(0, 0, 1, 1),
+            newZ => setter(new Vector4(value.X, value.Y, newZ, value.W)), min, max, step, speed);
+        ImGui.SameLine();
+        DrawFloatComponent($"W_{label}", "W", value.W, fieldWidth,
+            new Vector4(0.4f, 0.4f, 0.4f, 1),
+            newW => setter(new Vector4(value.X, value.Y, value.Z, newW)), min, max, step, speed);
+    }
+    
+    public static void DrawVec4Color(string? label, Vector4 value, Action<Vector4> setter, float? min = 0, float? max = 1, float step = 0.01f, float speed = 0.01f)
+    {
+        DrawVec4(label, value, setter, min, max, step, speed);
+    }
+    
+    private static void DrawFloatComponent(string id, string label, float value, float width, Vector4 color,
+        Action<float> setter,
+        float? min = null, float? max = null, float step = 0.1f, float speed = 1.0f)
+    {
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, color);
+        ImGui.Text(label);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(width - ImGui.CalcTextSize(label).X);
 
-		return ImGui.Button(buttonText);
-	}
+        UndoableImGui.UndoableDragFloat($"##{id}", $"Change {label}",
+            () => value,
+            setter,
+            min: min ?? float.MinValue,
+            max: max ?? float.MaxValue,
+            speed: speed,
+            stretch: false);
+
+        ImGui.PopStyleColor();
+    }
+
+    public static void AddProperty(IMemberAdapter member)
+    {
+        if (ImGui.Button($"Add {member.Name}"))
+        {
+            var result = FileDialog.OpenFileDialog(FileDialog.FilterByType(member.MemberType));
+        }
+    }
+
+    public static bool CenteredButton(string buttonText)
+    {
+        var windowSize = ImGui.GetWindowSize();
+        var buttonSize = ImGui.CalcTextSize(buttonText);
+
+        var buttonPosX = (windowSize.X - buttonSize.X) * 0.5f;
+        ImGui.SetCursorPosX(buttonPosX);
+
+        return ImGui.Button(buttonText);
+    }
 }

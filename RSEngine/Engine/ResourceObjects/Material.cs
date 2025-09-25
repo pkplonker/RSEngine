@@ -28,6 +28,8 @@ public class Material : IMaterial
 	[ResourceGuid(typeof(Texture))]
 	public Guid AlbedoGUID { get; set; }
 	
+	[Inspectable]
+	public Vector4 Color { get; set; } =  new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 
 	public Material(Guid shaderGuid)
 	{
@@ -59,6 +61,7 @@ public class Material : IMaterial
 		shader.SetUniform("uView", data.View);
 		shader.SetUniform("uProjection", data.Projection);
 		shader.SetUniform("uModel", modelMatrix);
+		shader.SetUniform("color", Color);
 	}
 
 	private void BindTexture(Guid textureGuid, TextureType textureType, Shader shader)

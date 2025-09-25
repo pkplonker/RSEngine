@@ -1,0 +1,9 @@
+{
+  "Path": "core\\assets\\Materials\\defaultmat.mat",
+  "GUID": "9b15ce0f-978b-43ff-a42d-0f5530f45efc",
+  "MetaDataVersion": 1,
+  "MetadataType": 1,
+  "Name": "defaultmat.mat",
+  "AbsolutePath": "C:\\Users\\pkplo\\Documents\\CodeProjects\\RSEngineGit\\RSEngine\\Projects\\DevTest\\DevTest\\core\\assets\\Materials\\defaultmat.mat",
+  "MetadataTypeAsType": "Engine.Material, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}
