@@ -15,7 +15,7 @@ public class MeshRenderer : Component, IRenderableComponent
 		this.GameObject = gameObject;
 	}
 
-	public void Render(Renderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null)
+	public void Render(IRenderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null)
 	{
 		if (customShaderArgs != null)
 		{

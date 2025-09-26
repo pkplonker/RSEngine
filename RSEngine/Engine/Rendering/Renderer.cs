@@ -23,82 +23,46 @@ public class Renderer : IRenderer
     public int ShadersUsed { get; private set; }
     public uint Triangles { get; set; }
     public uint Vertices { get; set; }
-    private Dictionary<IScene, IRenderTarget> sceneRenderTargets = new();
-    private Dictionary<IScene, PickingRenderTarget> scenePickingTargets = new();
-    private Dictionary<uint, GameObject> pickableObjects = new();
-    private uint nextObjectId = 1;
-    private string PICKING_SHADER = "Picking";
-    private IShader? pickingShader;
 
-    private IShader? PickingShader
-    {
-        get
-        {
-            if (pickingShader == null)
-            {
-                var res = ResourceManager.Instance.GetResourceByName(PICKING_SHADER);
-                if (res != null &&
-                    ResourceManager.Instance.TryGetResourceByGuid<Shader>(res.GUID, out var ps))
-                {
-                    pickingShader = ps;
-                    Logger.Info("Picking shader loaded successfully");
-                }
-                else
-                {
-                    Logger.Warning("Missing Picking Shader");
-                }
-            }
+    private Dictionary<IScene, SceneRenderTargets> sceneTargets = new();
+    private RenderPassRegistry renderPassRegistry = new();
 
-            return pickingShader;
-        }
-    }
+    public RenderPassRegistry RenderPasses => renderPassRegistry;
 
     public void AddScene(IScene? scene, Vector2D<uint> size, out IRenderTarget? renderTarget, bool toFrameBuffer)
     {
         renderTarget = null;
         if (scene == null) return;
 
-        if (!sceneRenderTargets.ContainsKey(scene))
+        if (!sceneTargets.ContainsKey(scene))
         {
-            renderTarget = GenerateIRenderTarget(size.X, size.Y, toFrameBuffer);
-            sceneRenderTargets.Add(scene, renderTarget);
-
-            // Also create picking render target if using framebuffer
+            var sceneRenderTargets = new SceneRenderTargets();
+        
+            var mainTarget = GenerateIRenderTarget(size.X, size.Y, toFrameBuffer);
+            sceneRenderTargets.AddTarget(RenderTargetType.Main, mainTarget);
+        
             if (toFrameBuffer)
             {
-                var pickingTarget = GeneratePickingRenderTarget(size.X, size.Y);
-                scenePickingTargets.Add(scene, pickingTarget);
+                foreach (var renderPass in renderPassRegistry.GetAllRenderPasses())
+                {
+                    if (renderPass.TargetType != RenderTargetType.Main)
+                    {
+                        var passTarget = renderPass.CreateRenderTarget(Gl, size.X, size.Y);
+                        if (passTarget != null)
+                        {
+                            sceneRenderTargets.AddTarget(renderPass.TargetType, passTarget);
+                        }
+                    }
+                }
             }
-
+        
+            sceneTargets.Add(scene, sceneRenderTargets);
             Logger.Info($"Added scene to renderer {scene.Name}");
         }
 
-        renderTarget = sceneRenderTargets[scene];
+        renderTarget = sceneTargets[scene].GetTarget(RenderTargetType.Main);
     }
-
-    private unsafe PickingRenderTarget GeneratePickingRenderTarget(uint sizeX, uint sizeY)
-    {
-        Gl.GenFramebuffers(1, out Framebuffer framebuffer);
-        Gl.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer.Handle);
-
-        Gl.GenTextures(1, out Silk.NET.OpenGL.Texture rt);
-        Gl.BindTexture(TextureTarget.Texture2D, rt.Handle);
-        Gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba, sizeX, sizeY, 0, PixelFormat.Rgba,
-            PixelType.UnsignedByte, null);
-
-        Gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-            (int)TextureMinFilter.Nearest);
-        Gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-            (int)TextureMagFilter.Nearest);
-
-        Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
-            TextureTarget.Texture2D, rt.Handle, 0);
-
-        Gl.GenTextures(1, out Silk.NET.OpenGL.Texture dummyDepthTexture);
-
-        return new PickingRenderTarget(framebuffer, rt, dummyDepthTexture, new Vector2D<int>((int)sizeX, (int)sizeY));
-    }
-
+    
     public void RenderUpdate()
     {
         using (var tracker = new PerformanceTracker(nameof(RenderUpdate)))
@@ -112,18 +76,19 @@ public class Renderer : IRenderer
 
             unsafe
             {
-                // Render normal scenes
-                foreach (var kvp in sceneRenderTargets)
+                foreach (var (scene, targets) in sceneTargets)
                 {
-                    DrawScene(kvp.Value, kvp.Key, false);
-                }
-
-                // Render picking passes every frame
-                foreach (var kvp in scenePickingTargets)
-                {
-                    if (sceneRenderTargets.ContainsKey(kvp.Key))
+                    foreach (var (targetType, renderTarget) in targets.GetAllTargets())
                     {
-                        DrawScene(kvp.Value, kvp.Key, true);
+                        var renderPass = renderPassRegistry.GetRenderPass(targetType);
+                        if (renderPass != null)
+                        {
+                            RenderSceneWithPass(renderTarget, scene, renderPass);
+                        }
+                        else if (targetType == RenderTargetType.Main)
+                        {
+                            RenderSceneMain(renderTarget, scene);
+                        }
                     }
                 }
 
@@ -133,26 +98,11 @@ public class Renderer : IRenderer
         }
     }
 
-    private void DrawScene(IRenderTarget renderTarget, IScene scene, bool isPickingPass)
+    private void RenderSceneWithPass(IRenderTarget renderTarget, IScene scene, IRenderPass renderPass)
     {
         renderTarget.Bind(Gl);
+        renderPass.ConfigureRenderState(Gl);
         
-        Gl.Disable(GLEnum.CullFace);
-        Gl.Enable(GLEnum.DepthTest);
-
-        if (isPickingPass)
-        {
-            Gl.Disable(GLEnum.DepthTest);
-            Gl.ClearColor(pickingClearColor);
-        }
-        else
-        {
-            Gl.Enable(GLEnum.DepthTest);
-            Gl.ClearColor(clearColor);
-        }
-
-        Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
-
         if (scene.ActiveCamera == null)
         {
             Logger.Warning("No active camera to render with");
@@ -166,43 +116,44 @@ public class Renderer : IRenderer
             var renderableComponent = gameObject?.GetComponent<IRenderableComponent>();
             if (renderableComponent != null)
             {
-                if (isPickingPass)
-                {
-                    RenderForPicking(renderableComponent, renderPassData, gameObject.ID);
-                }
-                else
-                {
-                    renderableComponent.Render(this, renderPassData);
-                }
+                renderPass.RenderComponent(renderableComponent, renderPassData, gameObject, this);
             }
         }
     }
-
-
-    private void RenderForPicking(IRenderableComponent component, RenderPassData data, uint objectId)
+    
+    private void RenderSceneMain(IRenderTarget renderTarget, IScene scene)
     {
-        if (PickingShader != null)
+        renderTarget.Bind(Gl);
+        Gl.Disable(GLEnum.CullFace);
+        Gl.Enable(GLEnum.DepthTest);
+        Gl.ClearColor(clearColor);
+        Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+        Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
+        
+        if (scene.ActiveCamera == null)
         {
-            float r = (objectId & 0xFF) / 255.0f;
-            float g = ((objectId >> 8) & 0xFF) / 255.0f;
-            float b = ((objectId >> 16) & 0xFF) / 255.0f;
+            Logger.Warning("No active camera to render with");
+            return;
+        }
 
-            component.Render(this, data,
-                new CustomShaderArgs(PickingShader,
-                    () => PickingShader.SetUniform("uObjectColor", new Vector3(r, g, b))));
+        var renderPassData = new RenderPassData(scene.ActiveCamera.GetView(), scene.ActiveCamera.GetProjection());
+
+        foreach (var gameObject in scene.ChildrenAsGameObjectsRecursive)
+        {
+            var renderableComponent = gameObject?.GetComponent<IRenderableComponent>();
+            if (renderableComponent != null)
+            {
+                renderableComponent.Render(this, renderPassData);
+            }
         }
     }
 
     public void Resize(Vector2D<int> size)
     {
         WindowSize = size;
-        foreach (var target in sceneRenderTargets)
+        foreach (var targets in sceneTargets.Values)
         {
-            target.Value?.ResizeWindow(Gl, (uint)size.X, (uint)size.Y);
-        }
-        foreach (var target in scenePickingTargets)
-        {
-            target.Value?.ResizeWindow(Gl, (uint)size.X, (uint)size.Y);
+            targets.ResizeAll(Gl, (uint)size.X, (uint)size.Y);
         }
     }
 
@@ -262,13 +213,12 @@ public class Renderer : IRenderer
         if (scene == null) return;
         unsafe
         {
-            if (sceneRenderTargets.TryGetValue(scene, out var rt))
+            if (sceneTargets.TryGetValue(scene, out var targets))
             {
-                rt.ResizeViewport(Gl, (uint)size.X, (uint)size.Y);
-            }
-            if (scenePickingTargets.TryGetValue(scene, out var sprt))
-            {
-                sprt.ResizeViewport(Gl, (uint)size.X, (uint)size.Y);
+                foreach (var (_, target) in targets.GetAllTargets())
+                {
+                    target?.ResizeViewport(Gl, (uint)size.X, (uint)size.Y);
+                }
             }
         }
     }
@@ -333,24 +283,17 @@ public class Renderer : IRenderer
         }
     }
 
-    public IRenderTarget? GetSceneRenderTarget(IScene? scene)
-        => scene == null ? null : sceneRenderTargets.TryGetValue(scene, out var rt) ? rt : null;
-
+    public IRenderTarget? GetSceneRenderTarget(IScene? scene, RenderTargetType type = RenderTargetType.Main)
+    {
+        if (scene == null) return null;
+        return sceneTargets.TryGetValue(scene, out var targets) ? targets.GetTarget(type) : null;
+    }
 
     public void RemoveScene(IScene? oldScene)
     {
-        if (oldScene != null)
+        if (oldScene != null && sceneTargets.ContainsKey(oldScene))
         {
-            if (sceneRenderTargets.ContainsKey(oldScene))
-            {
-                sceneRenderTargets.Remove(oldScene);
-            }
-
-            if (scenePickingTargets.ContainsKey(oldScene))
-            {
-                scenePickingTargets.Remove(oldScene);
-            }
-
+            sceneTargets.Remove(oldScene);
             Logger.Info($"Removed scene from renderer {oldScene.Name}");
         }
     }

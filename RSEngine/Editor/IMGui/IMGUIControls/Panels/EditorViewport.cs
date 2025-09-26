@@ -81,7 +81,7 @@ public class EditorViewport
 		{
 			var aspectSize = HandleResize(camera, scene, renderer, size);
 
-			IRenderTarget? rt = renderer.GetSceneRenderTarget(scene);
+			IRenderTarget? rt = renderer.GetSceneRenderTarget(scene, RenderTargetType.Main);
 			if (rt != null && rt is FrameBufferRenderTarget fbrtt)
 			{
 				Vector2 offset = new Vector2((size.X - aspectSize.X) * 0.5f,

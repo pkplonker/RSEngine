@@ -31,7 +31,6 @@ public class PickingRenderTarget : IRenderTarget
 
     public void ResizeWindow(GL gl, uint sizeX, uint sizeY)
     {
-        // Empty like your FrameBufferRenderTarget
     }
 
     public void Bind(GL gl)
@@ -42,21 +41,16 @@ public class PickingRenderTarget : IRenderTarget
 
     public unsafe uint ReadObjectIdAtPosition(GL gl, int x, int y)
     {
-        // Make sure we're reading from this framebuffer
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer.Handle);
 
-        // Flip Y coordinate (OpenGL uses bottom-left origin)
         int flippedY = ViewportSize.Y - y - 1;
 
-        // Clamp coordinates to viewport bounds
         x = Math.Max(0, Math.Min(x, ViewportSize.X - 1));
         flippedY = Math.Max(0, Math.Min(flippedY, ViewportSize.Y - 1));
 
-        // Read RGBA pixel
         byte* pixelData = stackalloc byte[4];
         gl.ReadPixels(x, flippedY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
 
-        // Convert RGB to object ID (24-bit ID stored in RGB channels)
         uint objectId = (uint)(pixelData[0] | (pixelData[1] << 8) | (pixelData[2] << 16));
         return objectId;
     }

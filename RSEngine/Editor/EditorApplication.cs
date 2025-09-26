@@ -23,6 +23,7 @@ namespace Editor
 		private static Vector2 LastMousePosition;
 		private IInputController inputController;
 		private FileWatcher fileWatcher;
+		private SelectionManager selectionManager;
 
 		private EditorApplication()
 		{
@@ -132,6 +133,7 @@ namespace Editor
 				renderer?.Load(window);
 				ResourceManager.Instance.Init(renderer.Gl, ProjectManager.ActiveProject?.Directory);
 				IconLoader.Init(renderer.Gl);
+				SetupRenderPasses();
 				var inputContext = window.CreateInput();
 				inputController = new InputController(inputContext);
 
@@ -196,6 +198,26 @@ namespace Editor
 			}
 		}
 
+		private void SetupRenderPasses()
+		{
+			selectionManager = new SelectionManager();
+			renderer.RenderPasses.RegisterRenderPass(selectionManager.GetSelectionPass());
+			renderer.RenderPasses.RegisterRenderPass(new WireframeDebugPass());
+			selectionManager.SelectionChanged += OnSelectionChanged;
+		}
+		
+		private void OnSelectionChanged(GameObject? selectedObject)
+		{
+			if (selectedObject != null)
+			{
+				Logger.Info($"Selected: {selectedObject.Name}");
+			}
+			else
+			{
+				Logger.Info("Selection cleared");
+			}
+		}
+		
 		private void OnRender(double deltaTime)
 		{
 			renderer?.RenderUpdate();
