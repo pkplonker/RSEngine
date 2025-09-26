@@ -7,6 +7,8 @@ namespace Engine;
 [Serializable]
 public class GameObject : IInspectable
 {
+	private static uint CurrentID = 0;
+	public uint ID { get; private set; }
 	public string Name { get; set; } = "DEFAULT_NAME";
 
 	[Inspectable(true)]
@@ -19,6 +21,7 @@ public class GameObject : IInspectable
 
 	public GameObject()
 	{
+		ID = ++CurrentID;
 		Transform = new Transform(this);
 	}
 

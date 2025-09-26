@@ -10,5 +10,10 @@ public interface IShader : IResource, IInspectable
 	unsafe void SetUniform(string name, Matrix4x4 value);
 	void SetUniform(string name, float value);
 	void SetUniform(string name, bool value);
+	void SetUniform(string name, Vector4 value);
+
+	void SetUniform(string name, Vector3 value);
+
+	void SetUniform(string name, Vector2 value);
 }
 

@@ -5,5 +5,5 @@ namespace Engine;
 
 public interface IRenderable
 {
-	public void Render(Renderer renderer, RenderPassData data);
+	public void Render(Renderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null);
 }

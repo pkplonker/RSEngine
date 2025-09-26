@@ -118,6 +118,24 @@ public class Shader : IDisposable, IShader
 
 		gl.Uniform4(location, value);
 	}
+	public void SetUniform(string name, Vector3 value)
+	{
+		if (!TryGetUniformLocation(name, out var location))
+		{
+			//Logger.Error($"{name} uniform not found on shader.");
+		}
+
+		gl.Uniform3(location, value);
+	}
+	public void SetUniform(string name, Vector2 value)
+	{
+		if (!TryGetUniformLocation(name, out var location))
+		{
+			//Logger.Error($"{name} uniform not found on shader.");
+		}
+
+		gl.Uniform2(location, value);
+	}
 
 	private uint LoadShader(ShaderType type, string src)
 	{

@@ -94,6 +94,12 @@
       <None Update="Resources\CoreAssets\Models\Sphere.fbx">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\CoreAssets\Shaders\picking.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\CoreAssets\Shaders\unlit.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
