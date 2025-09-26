@@ -51,7 +51,6 @@ public class PickingRenderTarget : IRenderTarget
         gl.ReadPixels(x, y, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
 
         uint objectId = (uint)(pixelData[0] | (pixelData[1] << 8) | (pixelData[2] << 16));
-        Logger.Info(objectId);
         return objectId;
     }
 }

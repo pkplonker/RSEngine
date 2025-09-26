@@ -54,11 +54,23 @@ public static class UndoableImGui
 		Action<int> setCurrentIndex,
 		IEnumerable<string> items,
 		float labelWidth = DEFAULT_LABEL_WIDTH,
-		bool stretch = true)
+		bool stretch = true,
+		bool skipLabel = false) 
 	{
 		int currentIndex = getCurrentIndex();
-		label = DrawLabel(label, labelWidth);
+    
+		if (!skipLabel)
+		{
+			label = DrawLabel(label, labelWidth);
+		}
+		else
+		{
+			if (!label.StartsWith("##"))
+				label = "##" + label;
+		}
+    
 		if (stretch) ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
+    
 		var originalIndex = currentIndex;
 		if (ImGui.Combo(label, ref currentIndex, items.ToArray(), items.Count()))
 		{
@@ -77,11 +89,10 @@ public static class UndoableImGui
 		if (!label.StartsWith("##"))
 		{
 			ImGui.Text(label);
-			ImGui.SameLine(width);
+			ImGui.SameLine(width); 
 		}
 
 		label = label.Insert(0, "##");
-
 		return label;
 	}
 

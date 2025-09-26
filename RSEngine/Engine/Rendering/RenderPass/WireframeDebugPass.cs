@@ -11,12 +11,14 @@ public class WireframeDebugPass : DebugRenderPass
     
     protected override void ConfigureDebugRenderState(GL gl)
     {
-        gl.ClearColor(50, 50, 50, 255); 
+        var color = 50 / 255f;
+        gl.ClearColor(color,color,color,1); 
+        gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
         gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
     }
     
     protected override void SetupDebugUniforms(GameObject gameObject)
     {
-        DebugShader?.SetUniform("uWireframeColor", new Vector3(0, 1, 0));
+        DebugShader?.SetUniform("uWireframeColor", new Vector3(1, 1, 1));
     }
 }

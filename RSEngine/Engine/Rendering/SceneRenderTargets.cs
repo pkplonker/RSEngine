@@ -7,8 +7,6 @@ public enum RenderTargetType
     Main,
     Picking,
     Debug,
-    Depth,
-    Shadow
 }
 
 public class SceneRenderTargets
