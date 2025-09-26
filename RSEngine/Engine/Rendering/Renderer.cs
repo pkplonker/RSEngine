@@ -42,24 +42,36 @@ public class Renderer : IRenderer
         
             if (toFrameBuffer)
             {
-                foreach (var renderPass in RenderPassRegistry.GetAllRenderPasses())
+                var pickingTarget = RenderPassRegistry.GetRenderPass(RenderTargetType.Picking)?.CreateRenderTarget(Gl, size.X, size.Y);
+                if (pickingTarget != null)
                 {
-                    if (renderPass.TargetType != RenderTargetType.Main)
-                    {
-                        var passTarget = renderPass.CreateRenderTarget(Gl, size.X, size.Y);
-                        if (passTarget != null)
-                        {
-                            sceneRenderTargets.AddTarget(renderPass.TargetType, passTarget);
-                        }
-                    }
+                    sceneRenderTargets.AddTarget(RenderTargetType.Picking, pickingTarget);
                 }
             }
+        
         
             sceneTargets.Add(scene, sceneRenderTargets);
             Logger.Info($"Added scene to renderer {scene.Name}");
         }
 
         renderTarget = sceneTargets[scene].GetTarget(RenderTargetType.Main);
+    }
+    
+    public void EnsureRenderTarget(IScene scene, RenderTargetType type)
+    {
+        if (sceneTargets.TryGetValue(scene, out var targets) && targets.GetTarget(type) == null)
+        {
+            var renderPass = RenderPassRegistry.GetRenderPass(type);
+            if (renderPass != null)
+            {
+                var newTarget = renderPass.CreateRenderTarget(Gl, (uint)targets.GetTarget(RenderTargetType.Main).ViewportSize.X, 
+                    (uint)targets.GetTarget(RenderTargetType.Main).ViewportSize.Y);
+                if (newTarget != null)
+                {
+                    targets.AddTarget(type, newTarget);
+                }
+            }
+        }
     }
     
     public void RenderUpdate()

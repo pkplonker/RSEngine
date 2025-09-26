@@ -21,14 +21,6 @@ public class EditorViewport
         {"16:9(HD/QHD/4K)", 16f / 9f}, {"16:10", 16f / 10f}, {"4:3", 4.0f / 3.0f}, {"32:9", 32.0f / 9.0f}
     };
 
-    private readonly Dictionary<string, RenderTargetType> renderTargetTypes = new()
-    {
-        {"Main", RenderTargetType.Main},
-        {"Picking", RenderTargetType.Picking},
-        {"Debug", RenderTargetType.Debug},
-   
-    };
-
     private int currentLevel;
     private int currentRenderPassIndex;
     private readonly IInputController inputController;
@@ -75,9 +67,10 @@ public class EditorViewport
         ImGui.Begin(panelName,
             ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
+        var enumValues = Enum.GetValues<RenderTargetType>();
+        
         var width = ImGui.GetContentRegionAvail().X/2;
         ImGui.SetNextItemWidth(width);
-        // Aspect Ratio selector
         UndoableImGui.UndoableCombo("##aspectRatio", "Modified viewport aspect ratio", () => currentLevel,
             (val) =>
             {
@@ -88,13 +81,12 @@ public class EditorViewport
 
         ImGui.SameLine();
         ImGui.SetNextItemWidth(width);
-        // Render Pass selector
         UndoableImGui.UndoableCombo("##renderPass", "Changed viewport render pass", () => currentRenderPassIndex,
             (val) =>
             {
                 currentRenderPassIndex = val;
                 EditorSettings.SaveSetting(VIEWPORT_RENDERPASS, currentRenderPassIndex);
-            }, renderTargetTypes.Keys, 0, stretch: false, skipLabel:true);
+            }, Enum.GetNames<RenderTargetType>(), 0, stretch: false, skipLabel: true);
 
         float usedHeight = ImGui.GetCursorPosY();
         Vector2 size = ImGui.GetContentRegionAvail();
@@ -115,8 +107,11 @@ public class EditorViewport
         {
             var aspectSize = HandleResize(camera, scene, renderer, size);
 
-            // Get the selected render target type
-            var selectedRenderTargetType = renderTargetTypes.ElementAt(currentRenderPassIndex).Value;
+            var selectedRenderTargetType = enumValues[currentRenderPassIndex];
+            if (selectedRenderTargetType != RenderTargetType.Main && selectedRenderTargetType != RenderTargetType.Picking)
+            {
+                renderer.EnsureRenderTarget(scene, selectedRenderTargetType);
+            }
             IRenderTarget? rt = renderer.GetSceneRenderTarget(scene, selectedRenderTargetType);
             
             if (rt != null)
@@ -124,13 +119,11 @@ public class EditorViewport
                 Vector2 offset = new Vector2((size.X - aspectSize.X) * 0.5f,
                     usedHeight + (size.Y - aspectSize.Y) * 0.5f);
 
-                // Store current viewport bounds for mouse coordinate conversion
                 currentOffset = ImGui.GetWindowPos() + offset;
                 currentAspectSize = aspectSize;
 
                 ImGui.SetCursorPos(offset);
 
-                // Handle different render target types
                 IntPtr textureHandle = GetTextureHandle(rt);
                 if (textureHandle != IntPtr.Zero)
                 {
@@ -140,14 +133,12 @@ public class EditorViewport
                         Vector4.One,
                         Vector4.Zero);
                         
-                    // Check if mouse is over the viewport image
                     var imageMin = ImGui.GetItemRectMin();
                     var imageMax = ImGui.GetItemRectMax();
                     isViewportHovered = ImGui.IsMouseHoveringRect(imageMin, imageMax);
                 }
                 else
                 {
-                    // Show placeholder if render target doesn't exist or isn't supported
                     ImGui.SetCursorPos(offset);
                     ImGui.Button($"No {selectedRenderTargetType} target", (Vector2)aspectSize);
                 }
@@ -194,7 +185,7 @@ public class EditorViewport
             if (framebufferPos.HasValue)
             {
                 // Only do selection on Main render target
-                var selectedRenderTargetType = renderTargetTypes.ElementAt(currentRenderPassIndex).Value;
+                var selectedRenderTargetType = (RenderTargetType)currentRenderPassIndex;
                 if (selectedRenderTargetType == RenderTargetType.Main || selectedRenderTargetType == RenderTargetType.Picking)
                 {
                     selectionManager.SelectObjectAtPosition(SceneController.ActiveScene,

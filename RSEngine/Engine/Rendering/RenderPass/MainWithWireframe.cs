@@ -1,0 +1,104 @@
+﻿using System.Numerics;
+using Silk.NET.Maths;
+using Silk.NET.OpenGL;
+
+namespace Engine;
+
+public class MainWithWireframePass : IRenderPass
+{
+    public RenderTargetType TargetType => RenderTargetType.MainWithWireframe;
+    public string Name => "Main + Wireframe";
+    
+    private IShader? wireframeShader;
+    private readonly string WIREFRAME_SHADER_NAME = "Wireframe";
+    
+    private IShader? WireframeShader
+    {
+        get
+        {
+            if (wireframeShader == null)
+            {
+                var res = ResourceManager.Instance.GetResourceByName(WIREFRAME_SHADER_NAME);
+                if (res != null && ResourceManager.Instance.TryGetResourceByGuid<Shader>(res.GUID, out var ws))
+                {
+                    wireframeShader = ws;
+                }
+            }
+            return wireframeShader;
+        }
+    }
+    
+    public IRenderTarget? CreateRenderTarget(GL gl, uint width, uint height)
+    {
+        // Use same framebuffer as main target
+        unsafe
+        {
+            gl.GenFramebuffers(1, out Framebuffer framebuffer);
+            gl.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer.Handle);
+
+            gl.GenTextures(1, out Silk.NET.OpenGL.Texture rt);
+            gl.BindTexture(TextureTarget.Texture2D, rt.Handle);
+            gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba, width, height, 0, PixelFormat.Rgba,
+                PixelType.UnsignedByte, null);
+
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                (int)TextureMinFilter.Linear);
+            gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                (int)TextureMagFilter.Linear);
+
+            gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
+                TextureTarget.Texture2D, rt.Handle, 0);
+
+            gl.GenTextures(1, out Silk.NET.OpenGL.Texture dummyDepthTexture);
+            gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+            return new FrameBufferRenderTarget(framebuffer, rt, new Vector2D<int>((int)width, (int)height));
+        }
+    }
+    
+    public void ConfigureRenderState(GL gl)
+    {
+        gl.Disable(GLEnum.CullFace);
+        gl.Enable(GLEnum.DepthTest);
+        gl.ClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Gray background
+        gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill); // Start with filled
+        gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+    }
+    
+    public void RenderComponent(IRenderableComponent component, RenderPassData data, GameObject gameObject, IRenderer renderer)
+    {
+        // First pass: Render normally (filled)
+        component.Render(renderer, data);
+        
+        // Second pass: Render wireframe on top
+        if (WireframeShader != null)
+        {
+            renderer.Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
+            renderer.Gl.PolygonOffset(-1.0f, -1.0f); // Push wireframe slightly forward
+            renderer.Gl.Enable(GLEnum.PolygonOffsetLine);
+            
+            renderer.UseShader(WireframeShader);
+            WireframeShader.SetUniform("uView", data.View);
+            WireframeShader.SetUniform("uProjection", data.Projection);
+            WireframeShader.SetUniform("uModel", gameObject.Transform.ModelMatrix);
+            WireframeShader.SetUniform("uWireframeColor", new Vector3(1, 1, 1)); // White wireframe
+            
+            // Render geometry again with wireframe shader
+            var mf = gameObject.GetComponent<MeshFilter>();
+            if (mf != null)
+            {
+                foreach (var guid in mf.meshes)
+                {
+                    if (ResourceManager.Instance.TryGetResourceByGuid<Mesh>(guid, out var mesh))
+                    {
+                        mesh?.Render(renderer, data);
+                    }
+                }
+            }
+            
+            // Restore state for next object
+            renderer.Gl.Disable(GLEnum.PolygonOffsetLine);
+            renderer.Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
+        }
+    }
+}

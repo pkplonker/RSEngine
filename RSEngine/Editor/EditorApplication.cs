@@ -203,6 +203,7 @@ namespace Editor
         {
             renderer.RenderPassRegistry.RegisterRenderPass(selectionManager.GetSelectionPass());
             renderer.RenderPassRegistry.RegisterRenderPass(new WireframeDebugPass());
+            renderer.RenderPassRegistry.RegisterRenderPass(new MainWithWireframePass());
             selectionManager.SelectionChanged += OnSelectionChanged;
         }
 
