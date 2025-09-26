@@ -15,11 +15,22 @@ public class MeshRenderer : Component, IRenderableComponent
 		this.GameObject = gameObject;
 	}
 
-	public void Render(Renderer renderer, RenderPassData data)
+	public void Render(IRenderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null)
 	{
-		ResourceManager.Instance.TryGetResourceByGuid<Material>(MaterialGuid, out var material);
-
-		renderer.UseMaterial(material, data, GameObject.Transform.ModelMatrix);
+		if (customShaderArgs != null)
+		{
+			renderer.UseShader(customShaderArgs.Shader);
+			customShaderArgs.Shader.SetUniform("uView", data.View);
+			customShaderArgs.Shader.SetUniform("uProjection", data.Projection);
+			customShaderArgs.Shader.SetUniform("uModel", GameObject.Transform.ModelMatrix);
+        
+			customShaderArgs.SetupCustomUniforms?.Invoke();
+		}
+		else
+		{
+			ResourceManager.Instance.TryGetResourceByGuid<Material>(MaterialGuid, out var material);
+			renderer.UseMaterial(material, data, GameObject.Transform.ModelMatrix);
+		}
 
 		var mf = GameObject.GetComponent<MeshFilter>();
 		if (mf != null)

@@ -21,6 +21,7 @@
         "IsIdentity": true
       }
     },
+    "ID": 1,
     "Name": "New Cube (1)",
     "Enabled": true,
     "components": {
@@ -56,6 +57,7 @@
         "IsIdentity": true
       }
     },
+    "ID": 2,
     "Name": "New Cube (2)",
     "Enabled": true,
     "components": {

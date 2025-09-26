@@ -3,5 +3,5 @@
 public interface IMesh : IResource, IInspectable
 {
 	unsafe void SetupMesh();
-	void Render(Renderer renderer, RenderPassData data);
+	void Render(IRenderer renderer, RenderPassData data);
 }

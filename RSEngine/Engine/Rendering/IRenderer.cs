@@ -15,10 +15,12 @@ public interface IRenderer : IRenderStats
 	void Load(IWindow window);
 	void SetRenderTargetSize(IScene scene, Vector2D<float> size);
 	void Close();
-	unsafe void DrawElements(Silk.NET.OpenGL.PrimitiveType primativeType, uint indicesLength, DrawElementsType elementsTyp);
-	void UseShader(IShader? shader);
-	void UseMaterial(IMaterial material, RenderPassData data, Matrix4x4 modelMatrix);
-	IRenderTarget? GetSceneRenderTarget(IScene? scene);
+	IRenderTarget? GetSceneRenderTarget(IScene? scene, RenderTargetType type = RenderTargetType.Main);
 	void RemoveScene(IScene? oldScene);
 	public Vector2D<int> WindowSize { get; set; }
+	public RenderPassRegistry RenderPasses { get; }
+
+	void UseShader(IShader shader);
+	void UseMaterial(IMaterial material, RenderPassData data, Matrix4x4 transformModelMatrix);
+	void DrawElements(Silk.NET.OpenGL.PrimitiveType triangles, uint indicesLength, DrawElementsType unsignedInt);
 }

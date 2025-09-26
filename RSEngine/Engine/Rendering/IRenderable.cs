@@ -1,9 +1,6 @@
-﻿using System.Numerics;
-using Silk.NET.OpenGL;
-
-namespace Engine;
+﻿namespace Engine;
 
 public interface IRenderable
 {
-	public void Render(Renderer renderer, RenderPassData data);
+	public void Render(IRenderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null);
 }

@@ -5,7 +5,8 @@ using Silk.NET.OpenGL;
 
 namespace Engine;
 
-public class FrameBufferRenderTarget : IRenderTarget
+public class 
+	FrameBufferRenderTarget : IRenderTarget
 {
 	public Silk.NET.OpenGL.Texture texture { get; private set; }
 	public Framebuffer frameBuffer { get; private set; }

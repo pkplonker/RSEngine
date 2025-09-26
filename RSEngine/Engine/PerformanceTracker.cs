@@ -32,7 +32,6 @@ public class PerformanceTracker : IDisposable
 
 		recentElapsedTimes[functionName].Add(elapsedTicks);
 
-		// Keep only the last 'bufferSize' measurements
 		if (recentElapsedTimes[functionName].Count > bufferSize)
 		{
 			recentElapsedTimes[functionName].RemoveAt(0);
