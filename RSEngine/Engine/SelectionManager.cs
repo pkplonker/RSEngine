@@ -7,7 +7,6 @@ public class SelectionManager
     private SelectionRenderPass selectionPass;
     private GameObject? selectedObject;
     
-    public GameObject? SelectedObject => selectedObject;
     public event Action<GameObject?>? SelectionChanged;
     
     public SelectionManager()
@@ -17,7 +16,7 @@ public class SelectionManager
     
     public SelectionRenderPass GetSelectionPass() => selectionPass;
     
-    public void SelectObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
+    public GameObject SelectObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
     {
         var newSelection = selectionPass.GetObjectAtPosition(scene, screenX, screenY, renderer);
         
@@ -25,16 +24,9 @@ public class SelectionManager
         {
             selectedObject = newSelection;
             SelectionChanged?.Invoke(selectedObject);
-            
-            if (selectedObject != null)
-            {
-                Logger.Info($"Selected object: {selectedObject.Name} (ID: {selectedObject.ID})");
-            }
-            else
-            {
-                Logger.Info("Selection cleared");
-            }
         }
+
+        return newSelection;
     }
     
     public void ClearSelection()
