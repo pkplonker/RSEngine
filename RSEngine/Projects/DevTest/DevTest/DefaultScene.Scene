@@ -70,5 +70,44 @@
         "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efb"
       }
     }
+  },
+  "Camera\u0000_NAME (1)": {
+    "transform": {
+      "ChildrenGuids": [],
+      "GUID": "3fedddd1-4194-4047-a188-30ae24dfb15e",
+      "Position": {
+        "X": 0.0,
+        "Y": -5.0,
+        "Z": 12.0
+      },
+      "Scale": {
+        "X": 1.0,
+        "Y": 1.0,
+        "Z": 1.0
+      },
+      "Rotation": {
+        "X": 0.12186935,
+        "Y": 0.0,
+        "Z": 0.0,
+        "W": 0.99254614,
+        "IsIdentity": false
+      }
+    },
+    "ID": 3,
+    "Name": "Camera\u0000_NAME (1)",
+    "Enabled": true,
+    "components": {
+      "Engine.PerspectiveCamera, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
+        "FieldOfView": 1.0471976,
+        "GameObject": {
+          "ID": 3,
+          "Name": "Camera\u0000_NAME (1)",
+          "Enabled": true
+        },
+        "AspectRatio": 1.6,
+        "NearPlaneDistance": 0.1,
+        "FarPlaneDistance": 200.0
+      }
+    }
   }
 }

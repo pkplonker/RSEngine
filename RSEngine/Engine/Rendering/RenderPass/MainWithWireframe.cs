@@ -60,30 +60,27 @@ public class MainWithWireframePass : IRenderPass
     {
         gl.Disable(GLEnum.CullFace);
         gl.Enable(GLEnum.DepthTest);
-        gl.ClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Gray background
-        gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill); // Start with filled
+        gl.ClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
         gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
     
     public void RenderComponent(IRenderableComponent component, RenderPassData data, GameObject gameObject, IRenderer renderer)
     {
-        // First pass: Render normally (filled)
         component.Render(renderer, data);
         
-        // Second pass: Render wireframe on top
         if (WireframeShader != null)
         {
             renderer.Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
-            renderer.Gl.PolygonOffset(-1.0f, -1.0f); // Push wireframe slightly forward
+            renderer.Gl.PolygonOffset(-1.0f, -1.0f);
             renderer.Gl.Enable(GLEnum.PolygonOffsetLine);
             
             renderer.UseShader(WireframeShader);
             WireframeShader.SetUniform("uView", data.View);
             WireframeShader.SetUniform("uProjection", data.Projection);
             WireframeShader.SetUniform("uModel", gameObject.Transform.ModelMatrix);
-            WireframeShader.SetUniform("uWireframeColor", new Vector3(1, 1, 1)); // White wireframe
+            WireframeShader.SetUniform("uWireframeColor", new Vector3(1, 1, 1));
             
-            // Render geometry again with wireframe shader
             var mf = gameObject.GetComponent<MeshFilter>();
             if (mf != null)
             {
@@ -96,7 +93,6 @@ public class MainWithWireframePass : IRenderPass
                 }
             }
             
-            // Restore state for next object
             renderer.Gl.Disable(GLEnum.PolygonOffsetLine);
             renderer.Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
         }

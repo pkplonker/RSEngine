@@ -135,7 +135,7 @@ namespace Editor
                 IconLoader.Init(renderer.Gl);
                 selectionManager = new SelectionManager();
                 SetupRenderPasses();
-                //renderer.OverlayRegistry.RegisterOverlay(new GridOverlay());
+                renderer.OverlayRegistry.RegisterOverlay(new GridOverlay());
                 var inputContext = window.CreateInput();
                 inputController = new InputController(inputContext);
 

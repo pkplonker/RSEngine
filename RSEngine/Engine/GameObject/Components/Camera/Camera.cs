@@ -8,6 +8,8 @@ public abstract class Camera : ICamera, IComponent
 	{
 		this.GameObject = go;
 	}
+	
+	[Inspectable(false)]
 	public GameObject GameObject { get; set; }
 	private float aspectRatio = 1.6f;
 	private bool isDirty = true;

@@ -130,6 +130,13 @@ public class Renderer : IRenderer
                 renderPass.RenderComponent(renderableComponent, renderPassData, gameObject, this);
             }
         }
+        if (renderPass.TargetType != RenderTargetType.Picking)
+        {
+            foreach (var overlay in OverlayRegistry.GetEnabledOverlays())
+            {
+                overlay.Render(this, renderPassData);
+            }
+        }
     }
     
     private void RenderSceneMain(IRenderTarget renderTarget, IScene scene)

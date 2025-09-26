@@ -117,4 +117,43 @@ public static class ImGuiHelpers
 
         return ImGui.Button(buttonText);
     }
+    
+    public static void DrawFloat(string label, float value, Action<float> setter, 
+        float? min = null, float? max = null, float step = 0.1f, float speed = 1.0f)
+    {
+        float labelWidth = ImGui.CalcTextSize(label).X + 20.0f;
+        float totalWidth = ImGui.GetContentRegionAvail().X - labelWidth;
+    
+        ImGui.Text(label);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(totalWidth);
+    
+        float constrainedValue = value;
+        if (min.HasValue) constrainedValue = Math.Max(constrainedValue, min.Value);
+        if (max.HasValue) constrainedValue = Math.Min(constrainedValue, max.Value);
+    
+        if (ImGui.DragFloat($"##{label}_drag", ref constrainedValue, speed, 
+                min ?? float.MinValue, max ?? float.MaxValue))
+        {
+            setter(constrainedValue);
+        }
+    }
+
+    public static void DrawInt(string label, int value, Action<int> setter, 
+        int min = int.MinValue, int max = int.MaxValue, int step = 1, float speed = 1.0f)
+    {
+        float labelWidth = ImGui.CalcTextSize(label).X + 20.0f;
+        float totalWidth = ImGui.GetContentRegionAvail().X - labelWidth;
+    
+        ImGui.Text(label);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(totalWidth);
+    
+        int constrainedValue = Math.Max(min, Math.Min(max, value));
+    
+        if (ImGui.DragInt($"##{label}_drag", ref constrainedValue, speed, min, max))
+        {
+            setter(constrainedValue);
+        }
+    }
 }
