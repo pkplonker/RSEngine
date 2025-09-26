@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using Engine.Logging;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
 namespace Engine;
@@ -43,15 +44,14 @@ public class PickingRenderTarget : IRenderTarget
     {
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer.Handle);
 
-        int flippedY = ViewportSize.Y - y - 1;
-
         x = Math.Max(0, Math.Min(x, ViewportSize.X - 1));
-        flippedY = Math.Max(0, Math.Min(flippedY, ViewportSize.Y - 1));
+        y = Math.Max(0, Math.Min(y, ViewportSize.Y - 1));
 
         byte* pixelData = stackalloc byte[4];
-        gl.ReadPixels(x, flippedY, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
+        gl.ReadPixels(x, y, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
 
         uint objectId = (uint)(pixelData[0] | (pixelData[1] << 8) | (pixelData[2] << 16));
+        Logger.Info(objectId);
         return objectId;
     }
 }

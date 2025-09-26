@@ -12,8 +12,8 @@ public class MoveableEditorCamera : EditorCamera
     private readonly SelectionManager selectionManager;
     private const string settingsCategory = "Editor Camera";
 
-    public MoveableEditorCamera(Vector3 position, float aspectRatio, SelectionManager selectionManager) : base(position,
-        aspectRatio)
+    public MoveableEditorCamera(Vector3 position, float aspectRatio, SelectionManager selectionManager,Vector3 eulerRotation = default) : base(position,
+        aspectRatio, eulerRotation)
     {
         this.selectionManager = selectionManager;
     }

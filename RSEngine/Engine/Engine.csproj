@@ -100,6 +100,9 @@
       <None Update="Resources\CoreAssets\Shaders\unlit.glsl">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\CoreAssets\Shaders\grid.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>

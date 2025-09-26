@@ -11,19 +11,26 @@ public class EditorCamera : IEditorCamera
 	protected readonly float startAspectRatio;
 	public float AspectRatio { get; set; }
 
-	public EditorCamera(Vector3 position, float aspectRatio)
+	public EditorCamera(Vector3 position, float aspectRatio, Vector3 eulerRotation = default)
 	{
 		startPosition = position;
 		startAspectRatio = aspectRatio;
+		startRotation = eulerRotation;
 		Reset();
 	}
+
+	private Vector3 startRotation;
 
 	public void Reset()
 	{
 		Transform = new Transform(null)
 		{
 			Position = startPosition,
-			Rotation = Quaternion.Identity
+			Rotation = Quaternion.CreateFromYawPitchRoll(
+				MathExtensions.DegreesToRadians(startRotation.Y), 
+				MathExtensions.DegreesToRadians(startRotation.X), 
+				MathExtensions.DegreesToRadians(startRotation.Z) 
+			)
 		};
 		AspectRatio = startAspectRatio;
 	}

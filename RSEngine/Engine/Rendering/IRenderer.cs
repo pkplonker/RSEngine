@@ -18,7 +18,8 @@ public interface IRenderer : IRenderStats
 	IRenderTarget? GetSceneRenderTarget(IScene? scene, RenderTargetType type = RenderTargetType.Main);
 	void RemoveScene(IScene? oldScene);
 	public Vector2D<int> WindowSize { get; set; }
-	public RenderPassRegistry RenderPasses { get; }
+	public RenderPassRegistry RenderPassRegistry { get; }
+	public SceneOverlayRegistry OverlayRegistry { get; }
 
 	void UseShader(IShader shader);
 	void UseMaterial(IMaterial material, RenderPassData data, Matrix4x4 transformModelMatrix);

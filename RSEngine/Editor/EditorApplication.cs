@@ -135,6 +135,7 @@ namespace Editor
                 IconLoader.Init(renderer.Gl);
                 selectionManager = new SelectionManager();
                 SetupRenderPasses();
+                //renderer.OverlayRegistry.RegisterOverlay(new GridOverlay());
                 var inputContext = window.CreateInput();
                 inputController = new InputController(inputContext);
 
@@ -149,7 +150,7 @@ namespace Editor
                     return false;
                 });
 
-                editorCamera = new MoveableEditorCamera(Vector3.UnitZ * 6, 16f / 9f, selectionManager);
+                editorCamera = new MoveableEditorCamera(new Vector3(0,-5,12), 16f / 9f, selectionManager, new Vector3(14,0,0));
                 imGuiController = new EditorImGuiController(renderer.Gl, window, inputContext, renderer, editorCamera,
                     inputController, selectionManager);
                 // hack
@@ -200,8 +201,8 @@ namespace Editor
 
         private void SetupRenderPasses()
         {
-            renderer.RenderPasses.RegisterRenderPass(selectionManager.GetSelectionPass());
-            renderer.RenderPasses.RegisterRenderPass(new WireframeDebugPass());
+            renderer.RenderPassRegistry.RegisterRenderPass(selectionManager.GetSelectionPass());
+            renderer.RenderPassRegistry.RegisterRenderPass(new WireframeDebugPass());
             selectionManager.SelectionChanged += OnSelectionChanged;
         }
 

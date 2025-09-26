@@ -25,10 +25,9 @@ public class Renderer : IRenderer
     public uint Vertices { get; set; }
 
     private Dictionary<IScene, SceneRenderTargets> sceneTargets = new();
-    private RenderPassRegistry renderPassRegistry = new();
-
-    public RenderPassRegistry RenderPasses => renderPassRegistry;
-
+    public RenderPassRegistry RenderPassRegistry { get; private set; } = new();
+    public SceneOverlayRegistry OverlayRegistry { get; private set; }= new();
+    
     public void AddScene(IScene? scene, Vector2D<uint> size, out IRenderTarget? renderTarget, bool toFrameBuffer)
     {
         renderTarget = null;
@@ -43,7 +42,7 @@ public class Renderer : IRenderer
         
             if (toFrameBuffer)
             {
-                foreach (var renderPass in renderPassRegistry.GetAllRenderPasses())
+                foreach (var renderPass in RenderPassRegistry.GetAllRenderPasses())
                 {
                     if (renderPass.TargetType != RenderTargetType.Main)
                     {
@@ -80,7 +79,7 @@ public class Renderer : IRenderer
                 {
                     foreach (var (targetType, renderTarget) in targets.GetAllTargets())
                     {
-                        var renderPass = renderPassRegistry.GetRenderPass(targetType);
+                        var renderPass = RenderPassRegistry.GetRenderPass(targetType);
                         if (renderPass != null)
                         {
                             RenderSceneWithPass(renderTarget, scene, renderPass);
@@ -145,6 +144,11 @@ public class Renderer : IRenderer
             {
                 renderableComponent.Render(this, renderPassData);
             }
+        }
+        
+        foreach (var overlay in OverlayRegistry.GetEnabledOverlays())
+        {
+            overlay.Render(this, renderPassData);
         }
     }
 
@@ -236,7 +240,7 @@ public class Renderer : IRenderer
 
         Gl.DrawElements(primativeType, indicesLength, elementsTyp, null);
     }
-
+    
     public void UseShader(IShader? shader)
     {
         if (lastShader != shader)
