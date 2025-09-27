@@ -77,8 +77,8 @@
       "GUID": "3fedddd1-4194-4047-a188-30ae24dfb15e",
       "Position": {
         "X": 0.0,
-        "Y": -5.0,
-        "Z": 12.0
+        "Y": 4.0,
+        "Z": 9.0
       },
       "Scale": {
         "X": 1.0,
@@ -86,10 +86,10 @@
         "Z": 1.0
       },
       "Rotation": {
-        "X": 0.12186935,
+        "X": -0.17364818,
         "Y": 0.0,
         "Z": 0.0,
-        "W": 0.99254614,
+        "W": 0.9848077,
         "IsIdentity": false
       }
     },
@@ -98,13 +98,14 @@
     "Enabled": true,
     "components": {
       "Engine.PerspectiveCamera, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
-        "FieldOfView": 1.0471976,
+        "FieldOfView": 0.7853982,
         "GameObject": {
           "ID": 3,
           "Name": "Camera\u0000_NAME (1)",
           "Enabled": true
         },
         "AspectRatio": 1.6,
+        "Main": true,
         "NearPlaneDistance": 0.1,
         "FarPlaneDistance": 200.0
       }

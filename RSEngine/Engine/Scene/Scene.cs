@@ -33,8 +33,24 @@ public class Scene : Transform, IScene
 		}
 	}
 
-	public ICamera? ActiveCamera { get; set; }
+	private ICamera? activeCamera;
 
+	public ICamera? ActiveCamera 
+	{ 
+		get 
+		{
+			if (activeCamera != null)
+				return activeCamera;
+
+			return ChildrenAsGameObjectsRecursive
+				.Select(go => go.GetComponent<Camera>())?
+				.FirstOrDefault(camera => camera?.Main ?? false) ?? null;
+		}
+		set 
+		{
+			activeCamera = value;
+		}
+	}
 	public void Update()
 	{
 		foreach (var go in ChildrenAsGameObjectsRecursive)

@@ -45,6 +45,8 @@ public class PickingRenderTarget : IRenderTarget
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer.Handle);
 
         x = Math.Max(0, Math.Min(x, ViewportSize.X - 1));
+    
+        y = ViewportSize.Y - 1 - y;
         y = Math.Max(0, Math.Min(y, ViewportSize.Y - 1));
 
         byte* pixelData = stackalloc byte[4];

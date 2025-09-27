@@ -5,9 +5,21 @@ namespace Engine;
 [ComponentName("Perspective Camera")]
 public class PerspectiveCamera : Camera
 {
-	public float FieldOfView { get; set; } = MathExtensions.DegreesToRadians(60f);
-	public PerspectiveCamera(GameObject go) : base(go) { }
+    [Range(ReadOnly = true)]
+    public float FieldOfView { get; set; } = MathExtensions.DegreesToRadians(45f);
 
-	protected override Matrix4x4 CalculateProjectionMatrix() =>
-		Matrix4x4.CreatePerspectiveFieldOfView(FieldOfView, AspectRatio, NearPlaneDistance, FarPlaneDistance);
+    [Serializable(false)]
+    [Range(1,180, Tooltip = "FOV in Degrees")]
+    public float FieldOfViewDegrees
+    {
+        get => MathExtensions.RadiansToDegrees(FieldOfView);
+        set => FieldOfView = MathExtensions.DegreesToRadians(value);
+    }
+
+    public PerspectiveCamera(GameObject go) : base(go)
+    {
+    }
+
+    protected override Matrix4x4 CalculateProjectionMatrix() =>
+        ICamera.CreatePerspectiveFieldOfViewGL(FieldOfView, AspectRatio, NearPlaneDistance, FarPlaneDistance);
 }

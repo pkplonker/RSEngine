@@ -45,6 +45,9 @@ public abstract class Camera : ICamera, IComponent
 		return projectionMatrix;
 	}
 
+	[Checkbox]
+	public bool Main { get; set; }
+
 	protected void RecalculateMatrices()
 	{
 		projectionMatrix = CalculateProjectionMatrix();

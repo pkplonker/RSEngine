@@ -128,11 +128,11 @@ public class EditorViewport
                 if (textureHandle != IntPtr.Zero)
                 {
                     ImGui.Image(textureHandle,
-                        (Vector2)aspectSize, Vector2.Zero,
-                        Vector2.One,
+                        (Vector2)aspectSize, new Vector2(0, 1),
+                        new Vector2(1, 0),
                         Vector4.One,
                         Vector4.Zero);
-                        
+                    
                     var imageMin = ImGui.GetItemRectMin();
                     var imageMax = ImGui.GetItemRectMax();
                     isViewportHovered = ImGui.IsMouseHoveringRect(imageMin, imageMax);
