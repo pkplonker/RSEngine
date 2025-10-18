@@ -40,19 +40,18 @@ public class PickingRenderTarget : IRenderTarget
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer.Handle);
     }
 
-    public unsafe uint ReadObjectIdAtPosition(GL gl, int x, int y)
+    public unsafe PickedObject ReadObjectIdAtPosition(GL gl, int x, int y)
     {
         gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer.Handle);
 
         x = Math.Max(0, Math.Min(x, ViewportSize.X - 1));
-    
+
         y = ViewportSize.Y - 1 - y;
         y = Math.Max(0, Math.Min(y, ViewportSize.Y - 1));
 
         byte* pixelData = stackalloc byte[4];
         gl.ReadPixels(x, y, 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, pixelData);
 
-        uint objectId = (uint)(pixelData[0] | (pixelData[1] << 8) | (pixelData[2] << 16));
-        return objectId;
+        return PickedObject.FromColor(pixelData[0], pixelData[1], pixelData[2], pixelData[3]);
     }
 }

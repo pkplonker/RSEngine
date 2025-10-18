@@ -65,7 +65,7 @@ public abstract class DebugRenderPass : IRenderPass
     
     protected abstract void ConfigureDebugRenderState(GL gl);
     
-    public virtual void RenderComponent(IRenderable component, RenderPassData data, IRenderer renderer)
+    public virtual void RenderComponent(IRenderable component, RenderPassData data,IScene scene, IRenderer renderer)
     {
         if (DebugShader != null)
         {

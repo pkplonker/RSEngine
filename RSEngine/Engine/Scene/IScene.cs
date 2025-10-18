@@ -2,7 +2,7 @@
 
 namespace Engine;
 
-public interface IScene : ITransform
+public interface IScene : ITransformNode
 {
 	string Name { get; set; }
 	ICamera? ActiveCamera { get; set; }
@@ -14,4 +14,7 @@ public interface IScene : ITransform
 	void AddGameObject(GameObject cameraGo);
 	string Path { get; set; }
 	IEnumerable<IRenderable> Renderables { get; }
+	byte SceneID { get; }
+	private static byte currentID;
+	protected static byte GetNextId() => ++currentID;
 }

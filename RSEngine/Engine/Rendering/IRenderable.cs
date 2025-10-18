@@ -6,6 +6,6 @@ public interface IRenderable
 {
 	public Matrix4x4 ModelMatrix { get; }
 	public void Render(IRenderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null);
-	public uint RenderID { get; }
-	public static uint CurrentID;
+	public RenderID24 RenderID { get; }
+	public static RenderID24 CurrentID = RenderID24.Zero;
 }

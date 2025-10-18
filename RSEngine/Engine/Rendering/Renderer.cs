@@ -150,7 +150,7 @@ public class Renderer : IRenderer
         {
             if (renderable != null)
             {
-                renderPass.RenderComponent(renderable, renderPassData, this);
+                renderPass.RenderComponent(renderable, renderPassData, scene,this);
             }
         }
 

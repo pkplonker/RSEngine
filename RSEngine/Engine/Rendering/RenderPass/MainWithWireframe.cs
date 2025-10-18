@@ -66,7 +66,7 @@ public class MainWithWireframePass : IRenderPass
         gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
 
-    public void RenderComponent(IRenderable component, RenderPassData data, IRenderer renderer)
+    public void RenderComponent(IRenderable component, RenderPassData data,IScene scene, IRenderer renderer)
     {
         component.Render(renderer, data);
 

@@ -4,6 +4,7 @@
 public class Scene : Transform, IScene
 {
     public string Path { get; set; } = string.Empty;
+    public byte SceneID { get; set; }
 
     public IEnumerable<IRenderable> Renderables =>
         ChildrenAsGameObjectsRecursive
@@ -17,7 +18,10 @@ public class Scene : Transform, IScene
         {
             this.Name = name;
         }
+
+        SceneID = IScene.GetNextId();
     }
+
 
     private string name = "Default Scene";
 
@@ -66,7 +70,7 @@ public class Scene : Transform, IScene
         ClearRelationshipsRecursive(this);
     }
 
-    private void ClearRelationshipsRecursive(ITransform node)
+    private void ClearRelationshipsRecursive(ITransformNode node)
     {
         if (node == null) return;
 

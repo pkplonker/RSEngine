@@ -9,7 +9,11 @@ public class MeshRenderer : Component, IRenderableComponent
 {
 	[ResourceGuid(typeof(Material))]
 	public Guid MaterialGuid { get; set; }
+	[Inspectable(false)]
 	public Matrix4x4 ModelMatrix => GameObject.Transform.ModelMatrix;
+	
+	[Inspectable(false)]
+	public RenderID24 RenderID { get; }
 
 	public MeshRenderer(GameObject gameObject) : base(gameObject)
 	{
@@ -47,7 +51,6 @@ public class MeshRenderer : Component, IRenderableComponent
 		}
 	}
 
-	public uint RenderID { get; }
 
 	public override void Update() { }
 

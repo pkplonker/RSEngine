@@ -77,8 +77,10 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
 
     private void SelectionChanged(IRenderable? obj)
     {
-        // selectedObject = obj;
-        // GameObjectSelectionChanged?.Invoke(obj);
+        if (obj is IComponent component)
+        {
+            GameObjectSelectionChanged?.Invoke(component.GameObject);
+        }
     }
 
     private void CreateControls(IEditorCamera editorCamera)
@@ -103,7 +105,7 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
         settingsPanel = new SettingsPanel(inputController);
     }
 
-    public void ImGuiControllerUpdate(float deltaTime)
+    public void ImGuiControllerUpdate(float deltaTime, IList<IScene> scenes)
     {
         using PerformanceTracker tracker = new PerformanceTracker(nameof(ImGuiControllerUpdate));
         imGuiController.Update(deltaTime);

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Collections.ObjectModel;
+using System.Numerics;
 using Editor.Controls;
 using Engine;
 using Engine.Logging;
@@ -84,10 +85,9 @@ namespace Editor
         protected override void SetupRenderer()
         {
             IconLoader.Init(renderer.Gl);
-            selectionManager = new SelectionManager();
+            selectionManager = new SelectionManager(activeScenes);
             SetupRenderPasses();
             renderer.OverlayRegistry.RegisterOverlay(new GridOverlay());
-            renderer.OverlayRegistry.RegisterOverlay(new GizmoOverlay());
         }
 
         protected override void OnApplicationLoaded()
@@ -97,8 +97,7 @@ namespace Editor
             editorCamera = new MoveableEditorCamera(new Vector3(0, 4,9), 16f / 9f, selectionManager, new Vector3(-20, 0, 0));
             imGuiController = new EditorImGuiController(renderer.Gl, window, inputContext, renderer, editorCamera,
                 inputController, selectionManager);
-            
-            // hack
+            activeScenes.Add(new GizmoScene());
             SceneController.OnActiveSceneChanged += (newScene, oldScene) =>
             {
                 renderer.RemoveScene(oldScene);
@@ -109,7 +108,11 @@ namespace Editor
                     newScene.ActiveCamera = editorCamera;
                     renderer.SetRenderTargetSize(SceneController.ActiveScene, new Vector2D<float>(size.X, size.Y));
                 }
+                activeScenes.Remove(oldScene);
+                activeScenes.Add(newScene);
             };
+            
+            
 
 #if DEBUG
             ProjectManager.LoadTestProject();
@@ -139,14 +142,14 @@ namespace Editor
 
         private void OnSelectionChanged(IRenderable? selectedObject)
         {
-            // if (selectedObject != null)
-            // {
-            //     Logger.Info($"Selected: {selectedObject.Name}");
-            // }
-            // else
-            // {
-            //     Logger.Info("Selection cleared");
-            // }
+            if (selectedObject is Component component)
+            {
+                Logger.Info($"Selected: {component.GameObject.Name}");
+            }
+            else
+            {
+                Logger.Info("Selection cleared");
+            }
         }
 
         protected override void OnRender(double deltaTime)
@@ -157,8 +160,10 @@ namespace Editor
 
         protected override void OnCustomUpdate(double deltaTime)
         {
-            imGuiController?.ImGuiControllerUpdate((float)deltaTime);
+            imGuiController?.ImGuiControllerUpdate((float)deltaTime, activeScenes);
         }
+
+        private ObservableCollection<IScene> activeScenes = new();
 
         public static EditorApplication GetApplication() => application ??= new EditorApplication();
     }

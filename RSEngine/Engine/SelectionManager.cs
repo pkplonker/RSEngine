@@ -1,4 +1,6 @@
-﻿using Engine.Logging;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using Engine.Logging;
 
 namespace Engine;
 
@@ -6,19 +8,27 @@ public class SelectionManager
 {
     private SelectionRenderPass selectionPass;
     private IRenderable? selectedObject;
-    
+    private readonly ObservableCollection<IScene> activeScenes;
+
     public event Action<IRenderable?>? SelectionChanged;
     
-    public SelectionManager()
+    public SelectionManager(ObservableCollection<IScene> activeScenes)
     {
         selectionPass = new SelectionRenderPass();
+        activeScenes.CollectionChanged += OnActiveScenesChanged;
+        this.activeScenes = activeScenes;
     }
-    
+
+    private void OnActiveScenesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        
+    }
+
     public SelectionRenderPass GetSelectionPass() => selectionPass;
     
-    public IRenderable SelectObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
+    public IRenderable SelectObjectAtPosition(int screenX, int screenY, IRenderer renderer)
     {
-        var newSelection = selectionPass.GetObjectAtPosition(scene, screenX, screenY, renderer);
+        var newSelection = selectionPass.GetObjectAtPosition(activeScenes, screenX, screenY, renderer);
         
         if (newSelection != selectedObject)
         {

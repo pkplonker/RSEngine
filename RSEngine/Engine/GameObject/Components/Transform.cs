@@ -15,12 +15,12 @@ public class Transform : ITransform
 
 	[Inspectable(false)]
 	[Serializable(false)]
-	public HashSet<ITransform> children { get; } = new();
+	public HashSet<ITransformNode> children { get; } = new();
 
 	[Serializable(true)]
 	public IEnumerable<Guid> ChildrenGuids => children.Select(x => x.GUID);
 
-	private ITransform? parent = null;
+	private ITransformNode? parent = null;
 
 	[Inspectable(false)]
 	public Vector3 Forward => Vector3.Transform(-Vector3.UnitZ, Rotation);
@@ -43,10 +43,10 @@ public class Transform : ITransform
 	[Inspectable(false)]
 	public bool HasChildren => children.Any();
 
-	public IReadOnlyList<ITransform> GetChildren => children.ToList();
+	public IReadOnlyList<ITransformNode> GetChildren => children.ToList();
 	public Guid GUID { get; set; } = System.Guid.NewGuid();
 
-	public IReadOnlyList<ITransform> ChildrenRecursive => children
+	public IReadOnlyList<ITransformNode> ChildrenRecursive => children
 		.SelectMany(child => child.ChildrenRecursive)
 		.Concat(children).ToList();
 
@@ -66,7 +66,7 @@ public class Transform : ITransform
 		this.GameObject = go;
 	}
 
-	public void SetParent(ITransform? newParent)
+	public void SetParent(ITransformNode? newParent)
 	{
 		parent?.children.Remove(this);
 
