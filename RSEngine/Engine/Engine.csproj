@@ -103,6 +103,9 @@
       <None Update="Resources\CoreAssets\Shaders\grid.glsl">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="Resources\CoreAssets\Shaders\gizmo.glsl">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>

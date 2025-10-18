@@ -87,6 +87,7 @@ namespace Editor
             selectionManager = new SelectionManager();
             SetupRenderPasses();
             renderer.OverlayRegistry.RegisterOverlay(new GridOverlay());
+            renderer.OverlayRegistry.RegisterOverlay(new GizmoOverlay());
         }
 
         protected override void OnApplicationLoaded()
