@@ -81,7 +81,7 @@ public class SelectionRenderPass : IRenderPass
             float g = ((packedId >> 8) & 0xFF) / 255.0f;
             float b = ((packedId >> 16) & 0xFF) / 255.0f;
             float a = ((packedId >> 24) & 0xFF) / 255.0f;
-
+        
             component.Render(renderer, data,
                 new CustomShaderArgs(PickingShader,
                     () => PickingShader.SetUniform("uObjectColor", new Vector4(r, g, b, a))));

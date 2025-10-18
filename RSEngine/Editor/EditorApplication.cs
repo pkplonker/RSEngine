@@ -142,14 +142,7 @@ namespace Editor
 
         private void OnSelectionChanged(IRenderable? selectedObject)
         {
-            if (selectedObject is Component component)
-            {
-                Logger.Info($"Selected: {component.GameObject.Name}");
-            }
-            else
-            {
-                Logger.Info("Selection cleared");
-            }
+            
         }
 
         protected override void OnRender(double deltaTime)

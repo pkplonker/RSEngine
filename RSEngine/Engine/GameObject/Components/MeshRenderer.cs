@@ -18,7 +18,7 @@ public class MeshRenderer : Component, IRenderableComponent
 	public MeshRenderer(GameObject gameObject) : base(gameObject)
 	{
 		this.GameObject = gameObject;
-		RenderID = IRenderable.CurrentID++;
+		RenderID = ++IRenderable.CurrentID;
 	}
 
 	public void Render(IRenderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null)

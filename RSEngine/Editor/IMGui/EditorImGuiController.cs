@@ -77,10 +77,8 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
 
     private void SelectionChanged(IRenderable? obj)
     {
-        if (obj is IComponent component)
-        {
-            GameObjectSelectionChanged?.Invoke(component.GameObject);
-        }
+        var selectedGameObject = (obj as IComponent)?.GameObject;
+        GameObjectSelectionChanged?.Invoke(selectedGameObject);
     }
 
     private void CreateControls(IEditorCamera editorCamera)
