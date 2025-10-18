@@ -5,9 +5,9 @@ namespace Engine;
 public class SelectionManager
 {
     private SelectionRenderPass selectionPass;
-    private GameObject? selectedObject;
+    private IRenderable? selectedObject;
     
-    public event Action<GameObject?>? SelectionChanged;
+    public event Action<IRenderable?>? SelectionChanged;
     
     public SelectionManager()
     {
@@ -16,7 +16,7 @@ public class SelectionManager
     
     public SelectionRenderPass GetSelectionPass() => selectionPass;
     
-    public GameObject SelectObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
+    public IRenderable SelectObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
     {
         var newSelection = selectionPass.GetObjectAtPosition(scene, screenX, screenY, renderer);
         

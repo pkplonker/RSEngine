@@ -25,9 +25,11 @@ public class Renderer : IRenderer
     public uint Vertices { get; set; }
 
     private Dictionary<IScene, SceneRenderTargets> sceneTargets = new();
+    private Dictionary<IRenderTarget, List<IScene>> renderTargetScenes = new();
+
     public RenderPassRegistry RenderPassRegistry { get; private set; } = new();
-    public SceneOverlayRegistry OverlayRegistry { get; private set; }= new();
-    
+    public SceneOverlayRegistry OverlayRegistry { get; private set; } = new();
+
     public void AddScene(IScene? scene, Vector2D<uint> size, out IRenderTarget? renderTarget, bool toFrameBuffer)
     {
         renderTarget = null;
@@ -36,27 +38,36 @@ public class Renderer : IRenderer
         if (!sceneTargets.ContainsKey(scene))
         {
             var sceneRenderTargets = new SceneRenderTargets();
-        
+
             var mainTarget = GenerateIRenderTarget(size.X, size.Y, toFrameBuffer);
             sceneRenderTargets.AddTarget(RenderTargetType.Main, mainTarget);
-        
+
             if (toFrameBuffer)
             {
-                var pickingTarget = RenderPassRegistry.GetRenderPass(RenderTargetType.Picking)?.CreateRenderTarget(Gl, size.X, size.Y);
+                var pickingTarget = RenderPassRegistry.GetRenderPass(RenderTargetType.Picking)
+                    ?.CreateRenderTarget(Gl, size.X, size.Y);
                 if (pickingTarget != null)
                 {
                     sceneRenderTargets.AddTarget(RenderTargetType.Picking, pickingTarget);
                 }
             }
-        
-        
+
             sceneTargets.Add(scene, sceneRenderTargets);
+
+            // Track render target to scene mapping
+            if (!renderTargetScenes.ContainsKey(mainTarget))
+            {
+                renderTargetScenes[mainTarget] = new List<IScene>();
+            }
+
+            renderTargetScenes[mainTarget].Add(scene);
+
             Logger.Info($"Added scene to renderer {scene.Name}");
         }
 
         renderTarget = sceneTargets[scene].GetTarget(RenderTargetType.Main);
     }
-    
+
     public void EnsureRenderTarget(IScene scene, RenderTargetType type)
     {
         if (sceneTargets.TryGetValue(scene, out var targets) && targets.GetTarget(type) == null)
@@ -64,7 +75,8 @@ public class Renderer : IRenderer
             var renderPass = RenderPassRegistry.GetRenderPass(type);
             if (renderPass != null)
             {
-                var newTarget = renderPass.CreateRenderTarget(Gl, (uint)targets.GetTarget(RenderTargetType.Main).ViewportSize.X, 
+                var newTarget = renderPass.CreateRenderTarget(Gl,
+                    (uint)targets.GetTarget(RenderTargetType.Main).ViewportSize.X,
                     (uint)targets.GetTarget(RenderTargetType.Main).ViewportSize.Y);
                 if (newTarget != null)
                 {
@@ -73,7 +85,7 @@ public class Renderer : IRenderer
             }
         }
     }
-    
+
     public void RenderUpdate()
     {
         using (var tracker = new PerformanceTracker(nameof(RenderUpdate)))
@@ -87,19 +99,27 @@ public class Renderer : IRenderer
 
             unsafe
             {
+                // Group scenes by render target to avoid redundant clears
+                var processedRenderTargets = new HashSet<IRenderTarget>();
+
                 foreach (var (scene, targets) in sceneTargets)
                 {
                     foreach (var (targetType, renderTarget) in targets.GetAllTargets())
                     {
+                        // Only clear and setup once per render target
+                        bool isFirstSceneForTarget = !processedRenderTargets.Contains(renderTarget);
+
                         var renderPass = RenderPassRegistry.GetRenderPass(targetType);
                         if (renderPass != null)
                         {
-                            RenderSceneWithPass(renderTarget, scene, renderPass);
+                            RenderSceneWithPass(renderTarget, scene, renderPass, isFirstSceneForTarget);
                         }
                         else if (targetType == RenderTargetType.Main)
                         {
-                            RenderSceneMain(renderTarget, scene);
+                            RenderSceneMain(renderTarget, scene, isFirstSceneForTarget);
                         }
+
+                        processedRenderTargets.Add(renderTarget);
                     }
                 }
 
@@ -109,11 +129,15 @@ public class Renderer : IRenderer
         }
     }
 
-    private void RenderSceneWithPass(IRenderTarget renderTarget, IScene scene, IRenderPass renderPass)
+    private void RenderSceneWithPass(IRenderTarget renderTarget, IScene scene, IRenderPass renderPass, bool clearTarget)
     {
         renderTarget.Bind(Gl);
-        renderPass.ConfigureRenderState(Gl);
-        
+
+        if (clearTarget)
+        {
+            renderPass.ConfigureRenderState(Gl);
+        }
+
         if (scene.ActiveCamera == null)
         {
             Logger.Warning("No active camera to render with");
@@ -122,14 +146,14 @@ public class Renderer : IRenderer
 
         var renderPassData = new RenderPassData(scene.ActiveCamera.GetView(), scene.ActiveCamera.GetProjection());
 
-        foreach (var gameObject in scene.ChildrenAsGameObjectsRecursive)
+        foreach (var renderable in scene.Renderables)
         {
-            var renderableComponent = gameObject?.GetComponent<IRenderableComponent>();
-            if (renderableComponent != null)
+            if (renderable != null)
             {
-                renderPass.RenderComponent(renderableComponent, renderPassData, gameObject, this);
+                renderPass.RenderComponent(renderable, renderPassData, this);
             }
         }
+
         if (renderPass.TargetType != RenderTargetType.Picking)
         {
             foreach (var overlay in OverlayRegistry.GetEnabledOverlays())
@@ -138,16 +162,20 @@ public class Renderer : IRenderer
             }
         }
     }
-    
-    private void RenderSceneMain(IRenderTarget renderTarget, IScene scene)
+
+    private void RenderSceneMain(IRenderTarget renderTarget, IScene scene, bool clearTarget)
     {
         renderTarget.Bind(Gl);
-        Gl.Disable(GLEnum.CullFace);
-        Gl.Enable(GLEnum.DepthTest);
-        Gl.ClearColor(clearColor);
-        Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
-        Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
-        
+
+        if (clearTarget)
+        {
+            Gl.Disable(GLEnum.CullFace);
+            Gl.Enable(GLEnum.DepthTest);
+            Gl.ClearColor(clearColor);
+            Gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+            Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
+        }
+
         if (scene.ActiveCamera == null)
         {
             Logger.Warning("No active camera to render with");
@@ -156,18 +184,39 @@ public class Renderer : IRenderer
 
         var renderPassData = new RenderPassData(scene.ActiveCamera.GetView(), scene.ActiveCamera.GetProjection());
 
-        foreach (var gameObject in scene.ChildrenAsGameObjectsRecursive)
+        foreach (var renderable in scene.Renderables)
         {
-            var renderableComponent = gameObject?.GetComponent<IRenderableComponent>();
-            if (renderableComponent != null)
+            if (renderable != null)
             {
-                renderableComponent.Render(this, renderPassData);
+                renderable.Render(this, renderPassData);
             }
         }
-        
+
         foreach (var overlay in OverlayRegistry.GetEnabledOverlays())
         {
             overlay.Render(this, renderPassData);
+        }
+    }
+
+    public void RemoveScene(IScene? oldScene)
+    {
+        if (oldScene != null && sceneTargets.ContainsKey(oldScene))
+        {
+            var targets = sceneTargets[oldScene];
+            var mainTarget = targets.GetTarget(RenderTargetType.Main);
+
+            // Remove scene from render target tracking
+            if (mainTarget != null && renderTargetScenes.ContainsKey(mainTarget))
+            {
+                renderTargetScenes[mainTarget].Remove(oldScene);
+                if (renderTargetScenes[mainTarget].Count == 0)
+                {
+                    renderTargetScenes.Remove(mainTarget);
+                }
+            }
+
+            sceneTargets.Remove(oldScene);
+            Logger.Info($"Removed scene from renderer {oldScene.Name}");
         }
     }
 
@@ -259,7 +308,7 @@ public class Renderer : IRenderer
 
         Gl.DrawElements(primativeType, indicesLength, elementsTyp, null);
     }
-    
+
     public void UseShader(IShader? shader)
     {
         if (lastShader != shader)
@@ -310,14 +359,5 @@ public class Renderer : IRenderer
     {
         if (scene == null) return null;
         return sceneTargets.TryGetValue(scene, out var targets) ? targets.GetTarget(type) : null;
-    }
-
-    public void RemoveScene(IScene? oldScene)
-    {
-        if (oldScene != null && sceneTargets.ContainsKey(oldScene))
-        {
-            sceneTargets.Remove(oldScene);
-            Logger.Info($"Removed scene from renderer {oldScene.Name}");
-        }
     }
 }

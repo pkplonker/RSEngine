@@ -1,84 +1,86 @@
-﻿using Silk.NET.Assimp;
-
-namespace Engine;
+﻿namespace Engine;
 
 [Inspectable]
 public class Scene : Transform, IScene
 {
-	public string Path { get; set; } = string.Empty;
+    public string Path { get; set; } = string.Empty;
 
-	public Scene(string? name = "") : base(null)
-	{
-		if (!string.IsNullOrEmpty(name))
-		{
-			this.Name = name;
-		}
-	}
+    public IEnumerable<IRenderable> Renderables =>
+        ChildrenAsGameObjectsRecursive
+            .Select(x => x.TryGetComponent<MeshRenderer>(out var component) ? component : null)
+            .WhereNotNull()
+            .OfType<IRenderable>();
 
-	private string name = "Default Scene";
+    public Scene(string? name = "") : base(null)
+    {
+        if (!string.IsNullOrEmpty(name))
+        {
+            this.Name = name;
+        }
+    }
 
-	public string Name
-	{
-		get => name;
-		set
-		{
-			if (value != name)
-			{
-				this.name = value;
-				if (!string.IsNullOrEmpty(ProjectManager.ActiveProject?.Directory))
-				{
-					Path = System.IO.Path.Combine(ProjectManager.ActiveProject?.Directory, $"{Name}{IScene.Extension}");
-				}
-			}
-		}
-	}
+    private string name = "Default Scene";
 
-	private ICamera? activeCamera;
+    public string Name
+    {
+        get => name;
+        set
+        {
+            if (value != name)
+            {
+                this.name = value;
+                if (!string.IsNullOrEmpty(ProjectManager.ActiveProject?.Directory))
+                {
+                    Path = System.IO.Path.Combine(ProjectManager.ActiveProject?.Directory, $"{Name}{IScene.Extension}");
+                }
+            }
+        }
+    }
 
-	public ICamera? ActiveCamera 
-	{ 
-		get 
-		{
-			if (activeCamera != null)
-				return activeCamera;
+    private ICamera? activeCamera;
 
-			return ChildrenAsGameObjectsRecursive
-				.Select(go => go.GetComponent<Camera>())?
-				.FirstOrDefault(camera => camera?.Main ?? false) ?? null;
-		}
-		set 
-		{
-			activeCamera = value;
-		}
-	}
-	public void Update()
-	{
-		foreach (var go in ChildrenAsGameObjectsRecursive)
-		{
-			go?.Update();
-		}
-	}
+    public ICamera? ActiveCamera
+    {
+        get
+        {
+            if (activeCamera != null)
+                return activeCamera;
 
-	public void Clear()
-	{
-		ClearRelationshipsRecursive(this);
-	}
+            return ChildrenAsGameObjectsRecursive
+                .Select(go => go.GetComponent<Camera>())?
+                .FirstOrDefault(camera => camera?.Main ?? false) ?? null;
+        }
+        set { activeCamera = value; }
+    }
 
-	private void ClearRelationshipsRecursive(ITransform node)
-	{
-		if (node == null) return;
+    public void Update()
+    {
+        foreach (var go in ChildrenAsGameObjectsRecursive)
+        {
+            go?.Update();
+        }
+    }
 
-		foreach (var child in node.ChildrenRecursive)
-		{
-			node.SetParent(null);
-			ClearRelationshipsRecursive(child);
-		}
+    public void Clear()
+    {
+        ClearRelationshipsRecursive(this);
+    }
 
-		children.Clear();
-	}
+    private void ClearRelationshipsRecursive(ITransform node)
+    {
+        if (node == null) return;
 
-	public void AddGameObject(GameObject cameraGo)
-	{
-		cameraGo.Transform.SetParent(this);
-	}
+        foreach (var child in node.ChildrenRecursive)
+        {
+            node.SetParent(null);
+            ClearRelationshipsRecursive(child);
+        }
+
+        children.Clear();
+    }
+
+    public void AddGameObject(GameObject cameraGo)
+    {
+        cameraGo.Transform.SetParent(this);
+    }
 }

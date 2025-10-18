@@ -1,4 +1,6 @@
-﻿namespace Engine;
+﻿using System.Collections;
+
+namespace Engine;
 
 public interface IScene : ITransform
 {
@@ -11,4 +13,5 @@ public interface IScene : ITransform
 	void Clear();
 	void AddGameObject(GameObject cameraGo);
 	string Path { get; set; }
+	IEnumerable<IRenderable> Renderables { get; }
 }

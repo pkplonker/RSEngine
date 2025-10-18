@@ -137,16 +137,16 @@ namespace Editor
             selectionManager.SelectionChanged += OnSelectionChanged;
         }
 
-        private void OnSelectionChanged(GameObject? selectedObject)
+        private void OnSelectionChanged(IRenderable? selectedObject)
         {
-            if (selectedObject != null)
-            {
-                Logger.Info($"Selected: {selectedObject.Name}");
-            }
-            else
-            {
-                Logger.Info("Selection cleared");
-            }
+            // if (selectedObject != null)
+            // {
+            //     Logger.Info($"Selected: {selectedObject.Name}");
+            // }
+            // else
+            // {
+            //     Logger.Info("Selection cleared");
+            // }
         }
 
         protected override void OnRender(double deltaTime)

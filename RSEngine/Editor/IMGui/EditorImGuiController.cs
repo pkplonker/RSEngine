@@ -75,10 +75,10 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
         selectionManager.SelectionChanged += SelectionChanged;
     }
 
-    private void SelectionChanged(GameObject? obj)
+    private void SelectionChanged(IRenderable? obj)
     {
-        selectedObject = obj;
-        GameObjectSelectionChanged?.Invoke(obj);
+        // selectedObject = obj;
+        // GameObjectSelectionChanged?.Invoke(obj);
     }
 
     private void CreateControls(IEditorCamera editorCamera)

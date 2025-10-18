@@ -65,11 +65,11 @@ public class SelectionRenderPass : IRenderPass
 
     }
     
-    public void RenderComponent(IRenderableComponent component, RenderPassData data, GameObject gameObject, IRenderer renderer)
+    public void RenderComponent(IRenderable component, RenderPassData data, IRenderer renderer)
     {
         if (PickingShader != null)
         {
-            uint objectId = gameObject.ID;
+            uint objectId = component.RenderID;
             float r = (objectId & 0xFF) / 255.0f;
             float g = ((objectId >> 8) & 0xFF) / 255.0f;
             float b = ((objectId >> 16) & 0xFF) / 255.0f;
@@ -80,7 +80,7 @@ public class SelectionRenderPass : IRenderPass
         }
     }
     
-    public GameObject? GetObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
+    public IRenderable? GetObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
     {
         var pickingTarget = renderer.GetSceneRenderTarget(scene, RenderTargetType.Picking) as PickingRenderTarget;
         if (pickingTarget == null) return null;
@@ -88,7 +88,7 @@ public class SelectionRenderPass : IRenderPass
         uint objectId = pickingTarget.ReadObjectIdAtPosition(renderer.Gl, screenX, screenY);
         if (objectId == 0) return null;
 
-        return scene.ChildrenAsGameObjectsRecursive
-            .FirstOrDefault(go => go?.ID == objectId);
+        return scene.Renderables
+            .FirstOrDefault(r => r?.RenderID == objectId);
     }
 }

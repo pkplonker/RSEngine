@@ -26,7 +26,7 @@ public abstract class DebugRenderPass : IRenderPass
             return debugShader;
         }
     }
-    
+
     public virtual IRenderTarget? CreateRenderTarget(GL gl, uint width, uint height)
     {
         // Default debug render target - same as picking but could be customized in derived classes
@@ -65,12 +65,12 @@ public abstract class DebugRenderPass : IRenderPass
     
     protected abstract void ConfigureDebugRenderState(GL gl);
     
-    public virtual void RenderComponent(IRenderableComponent component, RenderPassData data, GameObject gameObject, IRenderer renderer)
+    public virtual void RenderComponent(IRenderable component, RenderPassData data, IRenderer renderer)
     {
         if (DebugShader != null)
         {
             component.Render(renderer, data, 
-                new CustomShaderArgs(DebugShader, () => SetupDebugUniforms(gameObject)));
+                new CustomShaderArgs(DebugShader, () => SetupDebugUniforms()));
         }
         else
         {
@@ -79,7 +79,7 @@ public abstract class DebugRenderPass : IRenderPass
         }
     }
     
-    protected virtual void SetupDebugUniforms(GameObject gameObject)
+    protected virtual void SetupDebugUniforms()
     {
         // Override in derived classes to set specific uniforms
     }

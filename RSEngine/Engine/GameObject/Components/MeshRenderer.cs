@@ -9,10 +9,12 @@ public class MeshRenderer : Component, IRenderableComponent
 {
 	[ResourceGuid(typeof(Material))]
 	public Guid MaterialGuid { get; set; }
+	public Matrix4x4 ModelMatrix => GameObject.Transform.ModelMatrix;
 
 	public MeshRenderer(GameObject gameObject) : base(gameObject)
 	{
 		this.GameObject = gameObject;
+		RenderID = IRenderable.CurrentID++;
 	}
 
 	public void Render(IRenderer renderer, RenderPassData data, CustomShaderArgs customShaderArgs = null)
@@ -22,14 +24,14 @@ public class MeshRenderer : Component, IRenderableComponent
 			renderer.UseShader(customShaderArgs.Shader);
 			customShaderArgs.Shader.SetUniform("uView", data.View);
 			customShaderArgs.Shader.SetUniform("uProjection", data.Projection);
-			customShaderArgs.Shader.SetUniform("uModel", GameObject.Transform.ModelMatrix);
+			customShaderArgs.Shader.SetUniform("uModel", ModelMatrix);
         
 			customShaderArgs.SetupCustomUniforms?.Invoke();
 		}
 		else
 		{
 			ResourceManager.Instance.TryGetResourceByGuid<Material>(MaterialGuid, out var material);
-			renderer.UseMaterial(material, data, GameObject.Transform.ModelMatrix);
+			renderer.UseMaterial(material, data, ModelMatrix);
 		}
 
 		var mf = GameObject.GetComponent<MeshFilter>();
@@ -45,10 +47,10 @@ public class MeshRenderer : Component, IRenderableComponent
 		}
 	}
 
-	public void Update() { }
+	public uint RenderID { get; }
 
-	public void Clone(MeshRenderer? dmr)
-	{
-		dmr.MaterialGuid = MaterialGuid;
-	}
+	public override void Update() { }
+
+	public void Clone(MeshRenderer? dmr)=> dmr.MaterialGuid = MaterialGuid;
+	
 }
