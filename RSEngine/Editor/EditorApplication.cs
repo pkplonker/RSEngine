@@ -19,7 +19,9 @@ namespace Editor
         private IEditorCamera? editorCamera;
         private FileWatcher fileWatcher;
         private SelectionManager selectionManager;
-
+        private ObservableCollection<IScene> activeScenes = new();
+        private GizmoController gizmoController;
+        
         protected override string WindowName => WINDOW_NAME;
 
         private EditorApplication() : base()
@@ -97,8 +99,8 @@ namespace Editor
             editorCamera = new MoveableEditorCamera(new Vector3(0, 4,9), 16f / 9f, selectionManager, new Vector3(-20, 0, 0));
             imGuiController = new EditorImGuiController(renderer.Gl, window, inputContext, renderer, editorCamera,
                 inputController, selectionManager);
-    
             var gizmoScene = new GizmoScene();
+            gizmoController = new GizmoController(selectionManager, gizmoScene);
             gizmoScene.ActiveCamera = editorCamera;
             activeScenes.Add(gizmoScene);
     
@@ -162,7 +164,7 @@ namespace Editor
             imGuiController?.ImGuiControllerUpdate((float)deltaTime, activeScenes);
         }
 
-        private ObservableCollection<IScene> activeScenes = new();
+      
 
         public static EditorApplication GetApplication() => application ??= new EditorApplication();
     }

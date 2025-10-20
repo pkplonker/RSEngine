@@ -77,6 +77,10 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
 
     private void SelectionChanged(IRenderable? obj)
     {
+        if (obj is IGizmoRenderable)
+        {
+            return;
+        }
         var selectedGameObject = (obj as IComponent)?.GameObject;
         GameObjectSelectionChanged?.Invoke(selectedGameObject);
     }

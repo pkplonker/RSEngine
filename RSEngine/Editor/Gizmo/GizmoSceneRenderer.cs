@@ -1,4 +1,6 @@
-﻿namespace Engine;
+﻿using Engine;
+
+namespace Editor;
 
 public class GizmoSceneRenderer : ISceneRenderer<GizmoScene>
 {

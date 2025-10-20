@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
+using Engine;
 using Silk.NET.OpenGL;
+using Shader = Silk.NET.OpenGL.Shader;
 
-namespace Engine;
+namespace Editor;
 
 public class GizmoScene : IScene
 {
@@ -23,6 +25,7 @@ public class GizmoScene : IScene
     private (uint start, uint count) xAxisIndices;
     private (uint start, uint count) yAxisIndices;
     private (uint start, uint count) zAxisIndices;
+    private Matrix4x4 modelMatrix;
 
     private static readonly GizmoSceneRenderer renderer = new GizmoSceneRenderer();
 
@@ -44,18 +47,17 @@ public class GizmoScene : IScene
 
     public IRenderable? ResolveSelection(PickedObject pickingObject)
     {
-        // Return a wrapped renderable based on which axis was picked
         if (pickingObject.ObjectId == X_AXIS_ID.Value)
         {
-            return new GizmoAxisRenderable(this, GizmoAxis.X);
+            return new GizmoAxisRenderable(GizmoAxis.X);
         }
-        else if (pickingObject.ObjectId == Y_AXIS_ID.Value)
+        if (pickingObject.ObjectId == Y_AXIS_ID.Value)
         {
-            return new GizmoAxisRenderable(this, GizmoAxis.Y);
+            return new GizmoAxisRenderable(GizmoAxis.Y);
         }
-        else if (pickingObject.ObjectId == Z_AXIS_ID.Value)
+        if (pickingObject.ObjectId == Z_AXIS_ID.Value)
         {
-            return new GizmoAxisRenderable(this, GizmoAxis.Z);
+            return new GizmoAxisRenderable(GizmoAxis.Z);
         }
 
         return null;
@@ -68,7 +70,7 @@ public class GizmoScene : IScene
             if (gizmoShader == null)
             {
                 var res = ResourceManager.Instance.GetResourceByName("Gizmo");
-                if (res != null && ResourceManager.Instance.TryGetResourceByGuid<Shader>(res.GUID, out var gs))
+                if (res != null && ResourceManager.Instance.TryGetResourceByGuid<Engine.Shader>(res.GUID, out var gs))
                 {
                     gizmoShader = gs;
                 }
@@ -85,7 +87,7 @@ public class GizmoScene : IScene
             if (pickingShader == null)
             {
                 var res = ResourceManager.Instance.GetResourceByName("Picking");
-                if (res != null && ResourceManager.Instance.TryGetResourceByGuid<Shader>(res.GUID, out var ps))
+                if (res != null && ResourceManager.Instance.TryGetResourceByGuid<Engine.Shader>(res.GUID, out var ps))
                 {
                     pickingShader = ps;
                 }
@@ -279,7 +281,7 @@ public class GizmoScene : IScene
             renderer.UseShader(PickingShader);
             PickingShader.SetUniform("uView", data.View);
             PickingShader.SetUniform("uProjection", data.Projection);
-            PickingShader.SetUniform("uModel", Matrix4x4.Identity);
+            PickingShader.SetUniform("uModel", modelMatrix);
 
             // X-Axis
             SetPickingColor(PickingShader, X_AXIS_ID, SceneID);
@@ -314,7 +316,7 @@ public class GizmoScene : IScene
             renderer.UseShader(GizmoShader);
             GizmoShader.SetUniform("uView", data.View);
             GizmoShader.SetUniform("uProjection", data.Projection);
-            GizmoShader.SetUniform("uModel", Matrix4x4.Identity);
+            GizmoShader.SetUniform("uModel", modelMatrix);
 
             renderer.Gl.DrawElements(Silk.NET.OpenGL.PrimitiveType.Triangles, indexCount,
                 DrawElementsType.UnsignedInt, null);
@@ -338,6 +340,11 @@ public class GizmoScene : IScene
 
         pickingShader.SetUniform("uObjectColor", new Vector4(r, g, b, a));
     }
+
+    public void SetGizmo(GizmoController.GizmoType currentGizmoType, Matrix4x4 objModelMatrix)
+    {
+        modelMatrix = objModelMatrix;
+    }
 }
 
 public enum GizmoAxis
@@ -347,14 +354,12 @@ public enum GizmoAxis
     Z
 }
 
-public class GizmoAxisRenderable : IRenderable
+public class GizmoAxisRenderable : IGizmoRenderable
 {
-    private readonly GizmoScene gizmoScene;
     private readonly GizmoAxis axis;
 
-    public GizmoAxisRenderable(GizmoScene gizmoScene, GizmoAxis axis)
+    public GizmoAxisRenderable(GizmoAxis axis)
     {
-        this.gizmoScene = gizmoScene;
         this.axis = axis;
     }
 
