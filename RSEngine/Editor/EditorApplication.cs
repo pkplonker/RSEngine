@@ -93,11 +93,15 @@ namespace Editor
         protected override void OnApplicationLoaded()
         {
             var inputContext = window.CreateInput();
-            
+    
             editorCamera = new MoveableEditorCamera(new Vector3(0, 4,9), 16f / 9f, selectionManager, new Vector3(-20, 0, 0));
             imGuiController = new EditorImGuiController(renderer.Gl, window, inputContext, renderer, editorCamera,
                 inputController, selectionManager);
-            activeScenes.Add(new GizmoScene());
+    
+            var gizmoScene = new GizmoScene();
+            gizmoScene.ActiveCamera = editorCamera;
+            activeScenes.Add(gizmoScene);
+    
             SceneController.OnActiveSceneChanged += (newScene, oldScene) =>
             {
                 renderer.RemoveScene(oldScene);
@@ -106,13 +110,15 @@ namespace Editor
                 if (newScene != null)
                 {
                     newScene.ActiveCamera = editorCamera;
-                    renderer.SetRenderTargetSize(SceneController.ActiveScene, new Vector2D<float>(size.X, size.Y));
+                    renderer.SetRenderTargetSize(newScene, new Vector2D<float>(size.X, size.Y));
                 }
                 activeScenes.Remove(oldScene);
                 activeScenes.Add(newScene);
+                activeScenes.Add(gizmoScene); // Re-add gizmo scene
+        
+                // Share the main scene's render targets with the gizmo scene
+                renderer.ShareRenderTargets(newScene, gizmoScene);
             };
-            
-            
 
 #if DEBUG
             ProjectManager.LoadTestProject();

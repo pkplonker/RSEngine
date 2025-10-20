@@ -1,10 +1,17 @@
 ﻿namespace Engine;
 
 [Inspectable]
-public class Scene : Transform, IScene
+public class Scene : Transform, IGameObjectScene
 {
     public string Path { get; set; } = string.Empty;
     public byte SceneID { get; set; }
+    private static readonly StandardSceneRenderer sceneRenderer = new StandardSceneRenderer();
+    
+    public void RenderUsing(IRenderer renderer, IRenderPass renderPass, RenderPassData data)
+    {
+        sceneRenderer.RenderScene(this, renderer, renderPass, data);
+    }
+
 
     public IEnumerable<IRenderable> Renderables =>
         ChildrenAsGameObjectsRecursive
@@ -35,7 +42,7 @@ public class Scene : Transform, IScene
                 this.name = value;
                 if (!string.IsNullOrEmpty(ProjectManager.ActiveProject?.Directory))
                 {
-                    Path = System.IO.Path.Combine(ProjectManager.ActiveProject?.Directory, $"{Name}{IScene.Extension}");
+                    Path = System.IO.Path.Combine(ProjectManager.ActiveProject?.Directory, $"{Name}{IGameObjectScene.Extension}");
                 }
             }
         }
@@ -87,4 +94,7 @@ public class Scene : Transform, IScene
     {
         cameraGo.Transform.SetParent(this);
     }
+
+    public IRenderable? ResolveSelection(PickedObject pickingObject) =>
+        Renderables.FirstOrDefault(r => r?.RenderID == pickingObject.ObjectId);
 }

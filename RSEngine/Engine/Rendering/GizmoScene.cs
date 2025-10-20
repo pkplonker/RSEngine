@@ -12,11 +12,30 @@ public class GizmoScene : IScene
     private bool initialized = false;
     private uint indexCount = 0;
     public float ArrowThickness { get; set; } = 0.1f;
+    
+    private static readonly GizmoSceneRenderer renderer = new GizmoSceneRenderer();
 
     public GizmoScene()
     {
         SceneID = IScene.GetNextId();
     }
+
+    public string Name { get; set; }
+    public ICamera? ActiveCamera { get; set; }
+
+    public string Path { get; set; }
+
+    public void RenderUsing(IRenderer renderer, IRenderPass renderPass, RenderPassData data)
+    {
+        GizmoSceneRenderer.Instance.RenderScene(this, renderer, renderPass, data);
+    }
+
+    public byte SceneID { get; }
+    public IRenderable? ResolveSelection(PickedObject pickingObject)
+    {
+        throw new NotImplementedException();
+    }
+
     private IShader? GizmoShader
     {
         get
@@ -44,7 +63,7 @@ public class GizmoScene : IScene
         float arrowLength = 1.0f;
         float arrowHeadLength = 0.2f;
         float arrowHeadRadius = ArrowThickness;
-        int coneSegments = 12; // Smoother arrows
+        int coneSegments = 12;
 
         uint currentIndex = 0;
 
@@ -92,12 +111,10 @@ public class GizmoScene : IScene
                 indPtr, BufferUsageARB.StaticDraw);
         }
 
-        // Position attribute (location = 0)
         gl.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false,
             6 * sizeof(float), (void*)0);
         gl.EnableVertexAttribArray(0);
 
-        // Color attribute (location = 1)
         gl.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false,
             6 * sizeof(float), (void*)(3 * sizeof(float)));
         gl.EnableVertexAttribArray(1);
@@ -114,9 +131,8 @@ public class GizmoScene : IScene
         float shaftLength = Vector3.Distance(start, end) - headLength;
         Vector3 shaftEnd = start + direction * shaftLength;
 
-        float shaftRadius = headRadius * 0.3f; // Shaft is thinner than head
+        float shaftRadius = headRadius * 0.3f;
 
-        // Get perpendicular vectors
         Vector3 perpendicular1 = Vector3.Normalize(Vector3.Cross(direction,
             Math.Abs(direction.Y) > 0.9f ? new Vector3(1, 0, 0) : new Vector3(0, 1, 0)));
         Vector3 perpendicular2 = Vector3.Normalize(Vector3.Cross(direction, perpendicular1));
@@ -124,7 +140,6 @@ public class GizmoScene : IScene
         // ===== Arrow Shaft (Cylinder) =====
         uint shaftStartIndex = currentIndex;
 
-        // Create shaft vertices at start
         for (int i = 0; i < segments; i++)
         {
             float angle = (i / (float)segments) * MathF.PI * 2.0f;
@@ -134,7 +149,6 @@ public class GizmoScene : IScene
             currentIndex++;
         }
 
-        // Create shaft vertices at end
         uint shaftEndIndex = currentIndex;
         for (int i = 0; i < segments; i++)
         {
@@ -145,12 +159,10 @@ public class GizmoScene : IScene
             currentIndex++;
         }
 
-        // Create shaft triangles
         for (int i = 0; i < segments; i++)
         {
             int next = (i + 1) % segments;
 
-            // Two triangles per quad
             indices.Add(shaftStartIndex + (uint)i);
             indices.Add(shaftEndIndex + (uint)i);
             indices.Add(shaftStartIndex + (uint)next);
@@ -163,12 +175,10 @@ public class GizmoScene : IScene
         // ===== Arrow Head (Cone) =====
         Vector3 coneTip = end;
 
-        // Add cone tip vertex
         uint tipIndex = currentIndex;
         vertices.AddRange(new[] { coneTip.X, coneTip.Y, coneTip.Z, color.X, color.Y, color.Z });
         currentIndex++;
 
-        // Create cone base circle vertices
         uint coneBaseIndex = currentIndex;
         for (int i = 0; i < segments; i++)
         {
@@ -179,7 +189,6 @@ public class GizmoScene : IScene
             currentIndex++;
         }
 
-        // Create cone side triangles
         for (int i = 0; i < segments; i++)
         {
             int next = (i + 1) % segments;
@@ -189,7 +198,6 @@ public class GizmoScene : IScene
             indices.Add(coneBaseIndex + (uint)next);
         }
 
-        // Create cone base cap (flat circle at bottom)
         Vector3 baseCenter = shaftEnd;
         uint baseCenterIndex = currentIndex;
         vertices.AddRange(new[] { baseCenter.X, baseCenter.Y, baseCenter.Z, color.X, color.Y, color.Z });
@@ -199,14 +207,16 @@ public class GizmoScene : IScene
         {
             int next = (i + 1) % segments;
 
-            // Reverse winding for bottom face
             indices.Add(baseCenterIndex);
             indices.Add(coneBaseIndex + (uint)next);
             indices.Add(coneBaseIndex + (uint)i);
         }
     }
+    public void SetParent(ITransformNode? newParent)
+    {
+    }
 
-    public void Render(IRenderer renderer, RenderPassData data)
+    internal unsafe void RenderGeometry(IRenderer renderer, RenderPassData data, IRenderPass renderPass)
     {
         if (!Enabled || GizmoShader == null) return;
 
@@ -218,55 +228,22 @@ public class GizmoScene : IScene
         renderer.Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         renderer.UseShader(GizmoShader);
+        
         GizmoShader.SetUniform("uView", data.View);
         GizmoShader.SetUniform("uProjection", data.Projection);
         GizmoShader.SetUniform("uModel", Matrix4x4.Identity);
+        
+        if (renderPass?.TargetType == RenderTargetType.Picking)
+        {
+           // todo
+        }
 
         renderer.Gl.BindVertexArray(vao);
-
-        unsafe
-        {
-            renderer.Gl.DrawElements(Silk.NET.OpenGL.PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt,
-                null);
-        }
+        renderer.Gl.DrawElements(Silk.NET.OpenGL.PrimitiveType.Triangles, indexCount, 
+            DrawElementsType.UnsignedInt, null);
 
         renderer.Gl.Enable(EnableCap.DepthTest);
         renderer.Gl.Disable(EnableCap.Blend);
     }
-
-    public GameObject? GameObject { get; }
-    public HashSet<ITransformNode> children { get; }
-
-    public void SetParent(ITransformNode? newParent)
-    {
-        throw new NotImplementedException();
-    }
-
-    public bool HasChildren { get; }
-    public IReadOnlyList<ITransformNode> GetChildren { get; }
-    public Guid GUID { get; set; }
-    public IReadOnlyList<ITransformNode> ChildrenRecursive { get; }
-    public IEnumerable<GameObject> ChildrenAsGameObjectsRecursive { get; }
-    public IEnumerable<GameObject> ChildrenAsGameObjects { get; }
-    public string Name { get; set; }
-    public ICamera? ActiveCamera { get; set; }
-
-    public void Update()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void Clear()
-    {
-        throw new NotImplementedException();
-    }
-
-    public void AddGameObject(GameObject cameraGo)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string Path { get; set; }
-    public IEnumerable<IRenderable> Renderables { get; }
-    public byte SceneID { get; }
+    
 }

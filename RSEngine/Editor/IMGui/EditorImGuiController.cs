@@ -174,7 +174,7 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
                     var pu = new ProgressUpdater();
 
                     var path = FileDialog.OpenFileDialog(FileDialog.BuildFileDialogFilter(new List<string>()
-                        { IScene.Extension })).FirstOrDefault();
+                        { IGameObjectScene.Extension })).FirstOrDefault();
                     if (!string.IsNullOrEmpty(path))
                     {
                         ProgressBar.Show("Opening Scene", progressUpdate: pu);

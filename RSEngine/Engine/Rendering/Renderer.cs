@@ -132,28 +132,23 @@ public class Renderer : IRenderer
     private void RenderSceneWithPass(IRenderTarget renderTarget, IScene scene, IRenderPass renderPass, bool clearTarget)
     {
         renderTarget.Bind(Gl);
-
+    
         if (clearTarget)
         {
             renderPass.ConfigureRenderState(Gl);
         }
-
+    
         if (scene.ActiveCamera == null)
         {
             Logger.Warning("No active camera to render with");
             return;
         }
-
+    
         var renderPassData = new RenderPassData(scene.ActiveCamera.GetView(), scene.ActiveCamera.GetProjection());
 
-        foreach (var renderable in scene.Renderables)
-        {
-            if (renderable != null)
-            {
-                renderPass.RenderComponent(renderable, renderPassData, scene,this);
-            }
-        }
-
+        scene.RenderUsing(this, renderPass, renderPassData);
+        
+    
         if (renderPass.TargetType != RenderTargetType.Picking)
         {
             foreach (var overlay in OverlayRegistry.GetEnabledOverlays())
@@ -184,13 +179,7 @@ public class Renderer : IRenderer
 
         var renderPassData = new RenderPassData(scene.ActiveCamera.GetView(), scene.ActiveCamera.GetProjection());
 
-        foreach (var renderable in scene.Renderables)
-        {
-            if (renderable != null)
-            {
-                renderable.Render(this, renderPassData);
-            }
-        }
+        scene.RenderUsing(this, null, renderPassData);
 
         foreach (var overlay in OverlayRegistry.GetEnabledOverlays())
         {
@@ -203,19 +192,30 @@ public class Renderer : IRenderer
         if (oldScene != null && sceneTargets.ContainsKey(oldScene))
         {
             var targets = sceneTargets[oldScene];
-            var mainTarget = targets.GetTarget(RenderTargetType.Main);
-
-            // Remove scene from render target tracking
-            if (mainTarget != null && renderTargetScenes.ContainsKey(mainTarget))
+        
+            foreach (var (_, renderTarget) in targets.GetAllTargets())
             {
-                renderTargetScenes[mainTarget].Remove(oldScene);
-                if (renderTargetScenes[mainTarget].Count == 0)
+                if (renderTarget != null && renderTargetScenes.ContainsKey(renderTarget))
                 {
-                    renderTargetScenes.Remove(mainTarget);
+                    renderTargetScenes[renderTarget].Remove(oldScene);
+                
+                    if (renderTargetScenes[renderTarget].Count == 0)
+                    {
+                        renderTargetScenes.Remove(renderTarget);
+                    }
                 }
             }
 
-            sceneTargets.Remove(oldScene);
+            bool isShared = sceneTargets.Values.Count(t => t == targets) > 1;
+            if (!isShared)
+            {
+                sceneTargets.Remove(oldScene);
+            }
+            else
+            {
+                sceneTargets.Remove(oldScene);
+            }
+        
             Logger.Info($"Removed scene from renderer {oldScene.Name}");
         }
     }
@@ -359,5 +359,30 @@ public class Renderer : IRenderer
     {
         if (scene == null) return null;
         return sceneTargets.TryGetValue(scene, out var targets) ? targets.GetTarget(type) : null;
+    }
+    
+    public void ShareRenderTargets(IScene sourceScene, IScene targetScene)
+    {
+        if (sourceScene == null || targetScene == null) return;
+    
+        if (sceneTargets.TryGetValue(sourceScene, out var sourceTargets))
+        {
+            sceneTargets[targetScene] = sourceTargets;
+        
+            foreach (var (_, renderTarget) in sourceTargets.GetAllTargets())
+            {
+                if (!renderTargetScenes.ContainsKey(renderTarget))
+                {
+                    renderTargetScenes[renderTarget] = new List<IScene>();
+                }
+            
+                if (!renderTargetScenes[renderTarget].Contains(targetScene))
+                {
+                    renderTargetScenes[renderTarget].Add(targetScene);
+                }
+            }
+        
+            Logger.Info($"Scene '{targetScene.Name}' now shares render targets with '{sourceScene.Name}'");
+        }
     }
 }

@@ -18,7 +18,7 @@ public static class GameObjectFactory
 	private const string CUBE_NAME = "New Cube";
 	private const string PLANE_NAME = "New Plane";
 
-	public static GameObject CreateCamera(IScene activeScene, bool isPerspective = true)
+	public static GameObject CreateCamera(IGameObjectScene activeScene, bool isPerspective = true)
 	{
 		var go = CreatePrimitive(activeScene);
 		if (isPerspective)
@@ -28,7 +28,7 @@ public static class GameObjectFactory
 		return go;
 	}
 
-	public static GameObject? CreatePrimitive(IScene activeScene, PrimitiveType type = PrimitiveType.Empty)
+	public static GameObject? CreatePrimitive(IGameObjectScene activeScene, PrimitiveType type = PrimitiveType.Empty)
 	{
 		var go = new GameObject();
 
@@ -76,7 +76,7 @@ public static class GameObjectFactory
 		return go;
 	}
 
-	private static void SetName(IScene activeScene, GameObject go)
+	private static void SetName(IGameObjectScene activeScene, GameObject go)
 	{
 		var defaultName = go.Name;
 
@@ -135,6 +135,6 @@ public static class GameObjectFactory
 		}
 	}
 
-	public static GameObject CreateMesh(IScene activeScene) =>
+	public static GameObject CreateMesh(IGameObjectScene activeScene) =>
 		CreatePrimitive(activeScene, PrimitiveType.EmptyMesh);
 }

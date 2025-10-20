@@ -11,7 +11,7 @@ namespace Engine
 {
 	public class SceneSerializer
 	{
-		private readonly IScene scene;
+		private readonly IGameObjectScene scene;
 		private readonly string absolutePath;
 		private static JObject rootObject;
 		private BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
@@ -27,14 +27,14 @@ namespace Engine
 			rootObject = new JObject();
 		}
 
-		public SceneSerializer(IScene scene, string location)
+		public SceneSerializer(IGameObjectScene scene, string location)
 		{
 			if (scene == null) return;
 			this.scene = scene;
 
 			this.absolutePath =
 				Path.Join(!string.IsNullOrEmpty(location) ? location : ProjectManager.ActiveProject.Directory,
-					scene.Name) + IScene.Extension;
+					scene.Name) + IGameObjectScene.Extension;
 			rootObject = new JObject();
 		}
 

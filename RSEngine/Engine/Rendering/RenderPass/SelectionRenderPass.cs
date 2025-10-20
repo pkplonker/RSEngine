@@ -98,7 +98,7 @@ public class SelectionRenderPass : IRenderPass
 
         var targetScene = scenes.FirstOrDefault(x=> x.SceneID == pickingObject.SceneId);
         if(targetScene == null) return null;
-        
-        return targetScene.Renderables.FirstOrDefault(r => r?.RenderID == pickingObject.ObjectId);
+
+        return targetScene.ResolveSelection(pickingObject);
     }
 }
