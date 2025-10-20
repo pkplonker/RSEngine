@@ -7,7 +7,7 @@ namespace Engine;
 public class SelectionManager
 {
     private SelectionRenderPass selectionPass;
-    private IRenderable? selectedObject;
+    public IRenderable? SelectedObject { get; private set; }
     private readonly ObservableCollection<IScene> activeScenes;
 
     public event Action<IRenderable?>? SelectionChanged;
@@ -30,10 +30,10 @@ public class SelectionManager
     {
         var newSelection = selectionPass.GetObjectAtPosition(activeScenes, screenX, screenY, renderer);
         
-        if (newSelection != selectedObject)
+        if (newSelection != SelectedObject)
         {
-            selectedObject = newSelection;
-            SelectionChanged?.Invoke(selectedObject);
+            SelectedObject = newSelection;
+            SelectionChanged?.Invoke(SelectedObject);
         }
 
         return newSelection;
@@ -41,9 +41,9 @@ public class SelectionManager
     
     public void ClearSelection()
     {
-        if (selectedObject != null)
+        if (SelectedObject != null)
         {
-            selectedObject = null;
+            SelectedObject = null;
             SelectionChanged?.Invoke(null);
             Logger.Info("Selection cleared");
         }

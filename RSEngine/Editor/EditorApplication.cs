@@ -100,8 +100,9 @@ namespace Editor
             imGuiController = new EditorImGuiController(renderer.Gl, window, inputContext, renderer, editorCamera,
                 inputController, selectionManager);
             var gizmoScene = new GizmoScene();
-            gizmoController = new GizmoController(selectionManager, gizmoScene);
             gizmoScene.ActiveCamera = editorCamera;
+            gizmoController = new GizmoController(inputController,selectionManager, gizmoScene, gizmoScene.ActiveCamera);
+
             activeScenes.Add(gizmoScene);
     
             SceneController.OnActiveSceneChanged += (newScene, oldScene) =>
