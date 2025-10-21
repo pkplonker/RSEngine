@@ -1,84 +1,100 @@
-﻿using Silk.NET.Assimp;
-
-namespace Engine;
+﻿namespace Engine;
 
 [Inspectable]
-public class Scene : Transform, IScene
+public class Scene : Transform, IGameObjectScene
 {
-	public string Path { get; set; } = string.Empty;
+    public string Path { get; set; } = string.Empty;
+    public byte SceneID { get; set; }
+    private static readonly StandardSceneRenderer sceneRenderer = new StandardSceneRenderer();
+    
+    public void RenderUsing(IRenderer renderer, IRenderPass renderPass, RenderPassData data)
+    {
+        sceneRenderer.RenderScene(this, renderer, renderPass, data);
+    }
 
-	public Scene(string? name = "") : base(null)
-	{
-		if (!string.IsNullOrEmpty(name))
-		{
-			this.Name = name;
-		}
-	}
 
-	private string name = "Default Scene";
+    public IEnumerable<IRenderable> Renderables =>
+        ChildrenAsGameObjectsRecursive
+            .Select(x => x.TryGetComponent<MeshRenderer>(out var component) ? component : null)
+            .WhereNotNull()
+            .OfType<IRenderable>();
 
-	public string Name
-	{
-		get => name;
-		set
-		{
-			if (value != name)
-			{
-				this.name = value;
-				if (!string.IsNullOrEmpty(ProjectManager.ActiveProject?.Directory))
-				{
-					Path = System.IO.Path.Combine(ProjectManager.ActiveProject?.Directory, $"{Name}{IScene.Extension}");
-				}
-			}
-		}
-	}
+    public Scene(string? name = "") : base(null)
+    {
+        if (!string.IsNullOrEmpty(name))
+        {
+            this.Name = name;
+        }
 
-	private ICamera? activeCamera;
+        SceneID = IScene.GetNextId();
+    }
 
-	public ICamera? ActiveCamera 
-	{ 
-		get 
-		{
-			if (activeCamera != null)
-				return activeCamera;
 
-			return ChildrenAsGameObjectsRecursive
-				.Select(go => go.GetComponent<Camera>())?
-				.FirstOrDefault(camera => camera?.Main ?? false) ?? null;
-		}
-		set 
-		{
-			activeCamera = value;
-		}
-	}
-	public void Update()
-	{
-		foreach (var go in ChildrenAsGameObjectsRecursive)
-		{
-			go?.Update();
-		}
-	}
+    private string name = "Default Scene";
 
-	public void Clear()
-	{
-		ClearRelationshipsRecursive(this);
-	}
+    public string Name
+    {
+        get => name;
+        set
+        {
+            if (value != name)
+            {
+                this.name = value;
+                if (!string.IsNullOrEmpty(ProjectManager.ActiveProject?.Directory))
+                {
+                    Path = System.IO.Path.Combine(ProjectManager.ActiveProject?.Directory, $"{Name}{IGameObjectScene.Extension}");
+                }
+            }
+        }
+    }
 
-	private void ClearRelationshipsRecursive(ITransform node)
-	{
-		if (node == null) return;
+    private ICamera? activeCamera;
 
-		foreach (var child in node.ChildrenRecursive)
-		{
-			node.SetParent(null);
-			ClearRelationshipsRecursive(child);
-		}
+    public ICamera? ActiveCamera
+    {
+        get
+        {
+            if (activeCamera != null)
+                return activeCamera;
 
-		children.Clear();
-	}
+            return ChildrenAsGameObjectsRecursive
+                .Select(go => go.GetComponent<Camera>())?
+                .FirstOrDefault(camera => camera?.Main ?? false) ?? null;
+        }
+        set { activeCamera = value; }
+    }
 
-	public void AddGameObject(GameObject cameraGo)
-	{
-		cameraGo.Transform.SetParent(this);
-	}
+    public void Update()
+    {
+        foreach (var go in ChildrenAsGameObjectsRecursive)
+        {
+            go?.Update();
+        }
+    }
+
+    public void Clear()
+    {
+        ClearRelationshipsRecursive(this);
+    }
+
+    private void ClearRelationshipsRecursive(ITransformNode node)
+    {
+        if (node == null) return;
+
+        foreach (var child in node.ChildrenRecursive)
+        {
+            node.SetParent(null);
+            ClearRelationshipsRecursive(child);
+        }
+
+        children.Clear();
+    }
+
+    public void AddGameObject(GameObject cameraGo)
+    {
+        cameraGo.Transform.SetParent(this);
+    }
+
+    public IRenderable? ResolveSelection(PickedObject pickingObject) =>
+        Renderables.FirstOrDefault(r => r?.RenderID == pickingObject.ObjectId);
 }

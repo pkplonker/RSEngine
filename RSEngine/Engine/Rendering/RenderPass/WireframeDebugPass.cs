@@ -17,7 +17,7 @@ public class WireframeDebugPass : DebugRenderPass
         gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
     }
     
-    protected override void SetupDebugUniforms(GameObject gameObject)
+    protected override void SetupDebugUniforms()
     {
         DebugShader?.SetUniform("uWireframeColor", new Vector3(1, 1, 1));
     }

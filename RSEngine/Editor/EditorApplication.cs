@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Collections.ObjectModel;
+using System.Numerics;
 using Editor.Controls;
 using Engine;
 using Engine.Logging;
@@ -18,7 +19,9 @@ namespace Editor
         private IEditorCamera? editorCamera;
         private FileWatcher fileWatcher;
         private SelectionManager selectionManager;
-
+        private ObservableCollection<IScene> activeScenes = new();
+        private GizmoController gizmoController;
+        
         protected override string WindowName => WINDOW_NAME;
 
         private EditorApplication() : base()
@@ -84,7 +87,7 @@ namespace Editor
         protected override void SetupRenderer()
         {
             IconLoader.Init(renderer.Gl);
-            selectionManager = new SelectionManager();
+            selectionManager = new SelectionManager(activeScenes);
             SetupRenderPasses();
             renderer.OverlayRegistry.RegisterOverlay(new GridOverlay());
         }
@@ -92,12 +95,16 @@ namespace Editor
         protected override void OnApplicationLoaded()
         {
             var inputContext = window.CreateInput();
-            
+    
             editorCamera = new MoveableEditorCamera(new Vector3(0, 4,9), 16f / 9f, selectionManager, new Vector3(-20, 0, 0));
             imGuiController = new EditorImGuiController(renderer.Gl, window, inputContext, renderer, editorCamera,
                 inputController, selectionManager);
-            
-            // hack
+            var gizmoScene = new GizmoScene();
+            gizmoScene.ActiveCamera = editorCamera;
+            gizmoController = new GizmoController(inputController,selectionManager, gizmoScene, gizmoScene.ActiveCamera);
+
+            activeScenes.Add(gizmoScene);
+    
             SceneController.OnActiveSceneChanged += (newScene, oldScene) =>
             {
                 renderer.RemoveScene(oldScene);
@@ -106,8 +113,14 @@ namespace Editor
                 if (newScene != null)
                 {
                     newScene.ActiveCamera = editorCamera;
-                    renderer.SetRenderTargetSize(SceneController.ActiveScene, new Vector2D<float>(size.X, size.Y));
+                    renderer.SetRenderTargetSize(newScene, new Vector2D<float>(size.X, size.Y));
                 }
+                activeScenes.Remove(oldScene);
+                activeScenes.Add(newScene);
+                activeScenes.Add(gizmoScene); // Re-add gizmo scene
+        
+                // Share the main scene's render targets with the gizmo scene
+                renderer.ShareRenderTargets(newScene, gizmoScene);
             };
 
 #if DEBUG
@@ -136,16 +149,9 @@ namespace Editor
             selectionManager.SelectionChanged += OnSelectionChanged;
         }
 
-        private void OnSelectionChanged(GameObject? selectedObject)
+        private void OnSelectionChanged(IRenderable? selectedObject)
         {
-            if (selectedObject != null)
-            {
-                Logger.Info($"Selected: {selectedObject.Name}");
-            }
-            else
-            {
-                Logger.Info("Selection cleared");
-            }
+            
         }
 
         protected override void OnRender(double deltaTime)
@@ -156,8 +162,10 @@ namespace Editor
 
         protected override void OnCustomUpdate(double deltaTime)
         {
-            imGuiController?.ImGuiControllerUpdate((float)deltaTime);
+            imGuiController?.ImGuiControllerUpdate((float)deltaTime, activeScenes);
         }
+
+      
 
         public static EditorApplication GetApplication() => application ??= new EditorApplication();
     }

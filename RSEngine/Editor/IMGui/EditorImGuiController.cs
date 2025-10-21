@@ -75,10 +75,14 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
         selectionManager.SelectionChanged += SelectionChanged;
     }
 
-    private void SelectionChanged(GameObject? obj)
+    private void SelectionChanged(IRenderable? obj)
     {
-        selectedObject = obj;
-        GameObjectSelectionChanged?.Invoke(obj);
+        if (obj is IGizmoRenderable)
+        {
+            return;
+        }
+        var selectedGameObject = (obj as IComponent)?.GameObject;
+        GameObjectSelectionChanged?.Invoke(selectedGameObject);
     }
 
     private void CreateControls(IEditorCamera editorCamera)
@@ -103,7 +107,7 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
         settingsPanel = new SettingsPanel(inputController);
     }
 
-    public void ImGuiControllerUpdate(float deltaTime)
+    public void ImGuiControllerUpdate(float deltaTime, IList<IScene> scenes)
     {
         using PerformanceTracker tracker = new PerformanceTracker(nameof(ImGuiControllerUpdate));
         imGuiController.Update(deltaTime);
@@ -174,7 +178,7 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
                     var pu = new ProgressUpdater();
 
                     var path = FileDialog.OpenFileDialog(FileDialog.BuildFileDialogFilter(new List<string>()
-                        { IScene.Extension })).FirstOrDefault();
+                        { IGameObjectScene.Extension })).FirstOrDefault();
                     if (!string.IsNullOrEmpty(path))
                     {
                         ProgressBar.Show("Opening Scene", progressUpdate: pu);

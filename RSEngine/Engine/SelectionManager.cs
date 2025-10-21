@@ -1,29 +1,39 @@
-﻿using Engine.Logging;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using Engine.Logging;
 
 namespace Engine;
 
 public class SelectionManager
 {
     private SelectionRenderPass selectionPass;
-    private GameObject? selectedObject;
+    public IRenderable? SelectedObject { get; private set; }
+    private readonly ObservableCollection<IScene> activeScenes;
+
+    public event Action<IRenderable?>? SelectionChanged;
     
-    public event Action<GameObject?>? SelectionChanged;
-    
-    public SelectionManager()
+    public SelectionManager(ObservableCollection<IScene> activeScenes)
     {
         selectionPass = new SelectionRenderPass();
+        activeScenes.CollectionChanged += OnActiveScenesChanged;
+        this.activeScenes = activeScenes;
     }
-    
+
+    private void OnActiveScenesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        
+    }
+
     public SelectionRenderPass GetSelectionPass() => selectionPass;
     
-    public GameObject SelectObjectAtPosition(IScene scene, int screenX, int screenY, IRenderer renderer)
+    public IRenderable SelectObjectAtPosition(int screenX, int screenY, IRenderer renderer)
     {
-        var newSelection = selectionPass.GetObjectAtPosition(scene, screenX, screenY, renderer);
+        var newSelection = selectionPass.GetObjectAtPosition(activeScenes, screenX, screenY, renderer);
         
-        if (newSelection != selectedObject)
+        if (newSelection != SelectedObject)
         {
-            selectedObject = newSelection;
-            SelectionChanged?.Invoke(selectedObject);
+            SelectedObject = newSelection;
+            SelectionChanged?.Invoke(SelectedObject);
         }
 
         return newSelection;
@@ -31,9 +41,9 @@ public class SelectionManager
     
     public void ClearSelection()
     {
-        if (selectedObject != null)
+        if (SelectedObject != null)
         {
-            selectedObject = null;
+            SelectedObject = null;
             SelectionChanged?.Invoke(null);
             Logger.Info("Selection cleared");
         }

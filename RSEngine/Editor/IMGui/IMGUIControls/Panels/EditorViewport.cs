@@ -60,7 +60,7 @@ public class EditorViewport
         return new Vector2D<float>(newWidth, newHeight);
     }
 
-    public void Update(string panelName, IEditorCamera camera, IScene? scene, IInputController inputController,
+    public void Update(string panelName, IEditorCamera camera, IScene scene, IInputController inputController,
         IRenderer renderer, ref Vector2 currentSize)
     {
         currentSize = this.currentSize;
@@ -188,8 +188,7 @@ public class EditorViewport
                 var selectedRenderTargetType = (RenderTargetType)currentRenderPassIndex;
                 if (selectedRenderTargetType == RenderTargetType.Main || selectedRenderTargetType == RenderTargetType.Picking)
                 {
-                    selectionManager.SelectObjectAtPosition(SceneController.ActiveScene,
-                        (int)framebufferPos.Value.X, (int)framebufferPos.Value.Y, iRenderer);
+                    selectionManager.SelectObjectAtPosition((int)framebufferPos.Value.X, (int)framebufferPos.Value.Y, iRenderer);
                 }
             }
           

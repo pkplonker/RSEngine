@@ -96,7 +96,7 @@ public class HierarchyPanel : IPanel
 		ImGui.End();
 	}
 
-	private void DrawChildren(ITransform transform)
+	private void DrawChildren(ITransformNode transform)
 	{
 		foreach (var gameobject in transform.ChildrenAsGameObjects)
 		{

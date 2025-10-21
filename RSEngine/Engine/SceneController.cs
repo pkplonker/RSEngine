@@ -11,9 +11,9 @@ public static class SceneController
         ActiveScene = null;
     }
 
-    private static IScene? activeScene;
+    private static IGameObjectScene? activeScene;
 
-    public static IScene? ActiveScene
+    public static IGameObjectScene? ActiveScene
     {
         get => activeScene;
         set

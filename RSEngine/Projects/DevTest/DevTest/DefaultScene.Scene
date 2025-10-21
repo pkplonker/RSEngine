@@ -4,8 +4,8 @@
       "ChildrenGuids": [],
       "GUID": "ec133f64-f910-45e7-95a6-d4562f181570",
       "Position": {
-        "X": 2.0,
-        "Y": 0.0,
+        "X": 1.7729359,
+        "Y": 0.8178643,
         "Z": 0.0
       },
       "Scale": {
@@ -21,7 +21,6 @@
         "IsIdentity": true
       }
     },
-    "ID": 1,
     "Name": "New Cube (1)",
     "Enabled": true,
     "components": {
@@ -40,12 +39,12 @@
       "ChildrenGuids": [],
       "GUID": "c82057dc-84a0-4cb1-9510-d3626a672afe",
       "Position": {
-        "X": -2.0,
-        "Y": 0.0,
+        "X": -2.0607643,
+        "Y": 0.3261702,
         "Z": 0.0
       },
       "Scale": {
-        "X": 1.0,
+        "X": 1.825,
         "Y": 1.0,
         "Z": 1.0
       },
@@ -57,7 +56,6 @@
         "IsIdentity": true
       }
     },
-    "ID": 2,
     "Name": "New Cube (2)",
     "Enabled": true,
     "components": {
@@ -93,14 +91,12 @@
         "IsIdentity": false
       }
     },
-    "ID": 3,
     "Name": "Camera\u0000_NAME (1)",
     "Enabled": true,
     "components": {
       "Engine.PerspectiveCamera, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
         "FieldOfView": 0.7853982,
         "GameObject": {
-          "ID": 3,
           "Name": "Camera\u0000_NAME (1)",
           "Enabled": true
         },

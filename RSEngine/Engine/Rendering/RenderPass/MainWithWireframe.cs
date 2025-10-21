@@ -8,10 +8,10 @@ public class MainWithWireframePass : IRenderPass
 {
     public RenderTargetType TargetType => RenderTargetType.MainWithWireframe;
     public string Name => "Main + Wireframe";
-    
+
     private IShader? wireframeShader;
     private readonly string WIREFRAME_SHADER_NAME = "Wireframe";
-    
+
     private IShader? WireframeShader
     {
         get
@@ -24,10 +24,11 @@ public class MainWithWireframePass : IRenderPass
                     wireframeShader = ws;
                 }
             }
+
             return wireframeShader;
         }
     }
-    
+
     public IRenderTarget? CreateRenderTarget(GL gl, uint width, uint height)
     {
         // Use same framebuffer as main target
@@ -55,7 +56,7 @@ public class MainWithWireframePass : IRenderPass
             return new FrameBufferRenderTarget(framebuffer, rt, new Vector2D<int>((int)width, (int)height));
         }
     }
-    
+
     public void ConfigureRenderState(GL gl)
     {
         gl.Disable(GLEnum.CullFace);
@@ -64,35 +65,25 @@ public class MainWithWireframePass : IRenderPass
         gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
         gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
-    
-    public void RenderComponent(IRenderableComponent component, RenderPassData data, GameObject gameObject, IRenderer renderer)
+
+    public void RenderComponent(IRenderable component, RenderPassData data,IScene scene, IRenderer renderer)
     {
         component.Render(renderer, data);
-        
+
         if (WireframeShader != null)
         {
             renderer.Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Line);
             renderer.Gl.PolygonOffset(-1.0f, -1.0f);
             renderer.Gl.Enable(GLEnum.PolygonOffsetLine);
-            
+
             renderer.UseShader(WireframeShader);
             WireframeShader.SetUniform("uView", data.View);
             WireframeShader.SetUniform("uProjection", data.Projection);
-            WireframeShader.SetUniform("uModel", gameObject.Transform.ModelMatrix);
+            WireframeShader.SetUniform("uModel", component.ModelMatrix);
             WireframeShader.SetUniform("uWireframeColor", new Vector3(1, 1, 1));
-            
-            var mf = gameObject.GetComponent<MeshFilter>();
-            if (mf != null)
-            {
-                foreach (var guid in mf.meshes)
-                {
-                    if (ResourceManager.Instance.TryGetResourceByGuid<Mesh>(guid, out var mesh))
-                    {
-                        mesh?.Render(renderer, data);
-                    }
-                }
-            }
-            
+
+            component.Render(renderer, data);
+
             renderer.Gl.Disable(GLEnum.PolygonOffsetLine);
             renderer.Gl.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
         }

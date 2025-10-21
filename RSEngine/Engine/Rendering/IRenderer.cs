@@ -25,4 +25,5 @@ public interface IRenderer : IRenderStats
 	void UseMaterial(IMaterial material, RenderPassData data, Matrix4x4 transformModelMatrix);
 	void DrawElements(Silk.NET.OpenGL.PrimitiveType triangles, uint indicesLength, DrawElementsType unsignedInt);
 	void EnsureRenderTarget(IScene scene, RenderTargetType selectedRenderTargetType);
+	public void ShareRenderTargets(IScene sourceScene, IScene targetScene);
 }

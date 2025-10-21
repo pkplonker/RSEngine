@@ -67,7 +67,7 @@ public class MoveableEditorCamera : EditorCamera
             float mouseSensitivityY = EditorSettings.GetSetting("Mouse Sensitivity Y", settingsCategory, true, 0.5f);
             var mouseDelta = arg;
             Transform.Rotate(-mouseDelta.X * mouseSensitivityX * Time.DeltaTime,
-                mouseDelta.Y * mouseSensitivityY * Time.DeltaTime);
+                -mouseDelta.Y * mouseSensitivityY * Time.DeltaTime);
             return true;
         }
 

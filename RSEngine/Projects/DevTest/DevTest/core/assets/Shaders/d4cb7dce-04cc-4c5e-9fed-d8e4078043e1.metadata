@@ -1,0 +1,9 @@
+{
+  "Path": "core\\assets\\Shaders\\gizmo.glsl",
+  "GUID": "d4cb7dce-04cc-4c5e-9fed-d8e4078043e1",
+  "MetaDataVersion": 1,
+  "MetadataType": 2,
+  "Name": "gizmo.glsl",
+  "AbsolutePath": "C:\\Users\\pkplo\\Documents\\CodeProjects\\RSEngine\\RsEngine\\Projects\\DevTest\\DevTest\\core\\assets\\Shaders\\gizmo.glsl",
+  "MetadataTypeAsType": "Engine.Shader, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+}

@@ -113,4 +113,5 @@ public class GridOverlay : ISceneOverlay
         renderer.Gl.DepthMask(true);
         renderer.Gl.Disable(EnableCap.Blend);
     }
+
 }

@@ -59,7 +59,7 @@ public class Shader : IDisposable, IShader
 			location = gl.GetUniformLocation(handle, name);
 			if (location == -1)
 			{
-				Debug.WriteLine($"{name} uniform not found on shader.");
+				//Logger.Log($"{name} uniform not found on shader.");
 				return false;
 			}
 
@@ -74,7 +74,7 @@ public class Shader : IDisposable, IShader
 	{
 		if (!TryGetUniformLocation(name, out var location))
 		{
-			Logger.Error($"{name} uniform not found on shader.");
+			//Logger.Error($"{name} uniform not found on shader.");
 		}
 
 		gl.Uniform1(location, value);
