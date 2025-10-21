@@ -100,7 +100,7 @@ public class GizmoController
             if (isDragging)
             {
                 currentHandler?.EndDrag();
-                Logger.Log($"Finished {currentGizmoType} operation");
+                //Logger.Log($"Finished {currentGizmoType} operation");
             }
             isDragging = false;
         }

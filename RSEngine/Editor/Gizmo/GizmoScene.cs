@@ -13,12 +13,13 @@ public class GizmoScene : IScene
     private Matrix4x4 modelMatrix;
     private GizmoController.GizmoType currentGizmoType = GizmoController.GizmoType.None;
     
-    // Different gizmo implementations
     private TranslationGizmo? translationGizmo;
     private RotationGizmo? rotationGizmo;
     private ScaleGizmo? scaleGizmo;
     
     private static readonly GizmoSceneRenderer renderer = new GizmoSceneRenderer();
+    
+    public float GizmoScreenSize { get; set; } = 0.15f;
 
     // Picking IDs for each axis
     private static readonly RenderID24 X_AXIS_ID = new RenderID24(1);
@@ -135,13 +136,31 @@ public class GizmoScene : IScene
             renderer.Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
-        activeGizmo.Render(renderer.Gl, shader, modelMatrix, data.View, data.Projection, isPicking, SceneID);
+        Matrix4x4 scaledModelMatrix = CalculateScreenSpaceGizmoMatrix(modelMatrix, data.View, data.Projection);
+
+        activeGizmo.Render(renderer.Gl, shader, scaledModelMatrix, data.View, data.Projection, isPicking, SceneID);
 
         if (!isPicking)
         {
             renderer.Gl.Enable(EnableCap.DepthTest);
             renderer.Gl.Disable(EnableCap.Blend);
         }
+    }
+
+    private Matrix4x4 CalculateScreenSpaceGizmoMatrix(Matrix4x4 objectMatrix, Matrix4x4 view, Matrix4x4 projection)
+    {
+        Vector3 position = new Vector3(objectMatrix.M41, objectMatrix.M42, objectMatrix.M43);
+        
+        Matrix4x4.Invert(view, out Matrix4x4 invView);
+        Vector3 cameraPos = new Vector3(invView.M41, invView.M42, invView.M43);
+        float distance = Vector3.Distance(position, cameraPos);
+        
+        float gizmoScale = distance * GizmoScreenSize;
+        
+        Matrix4x4 scaleMatrix = Matrix4x4.CreateScale(gizmoScale);
+        Matrix4x4 translationMatrix = Matrix4x4.CreateTranslation(position);
+        
+        return scaleMatrix * translationMatrix;
     }
 
     public void SetGizmo(GizmoController.GizmoType gizmoType, Matrix4x4 objModelMatrix)
