@@ -41,7 +41,7 @@ public class GizmoController
             mouseIsDown = true;
             mouseStartPosition = inputController.GetMousePosition();
             
-            Logger.Log($"Mouse down at {mouseStartPosition}");
+            //Logger.Log($"Mouse down at {mouseStartPosition}");
         }
         else if (state == IInputController.InputState.Released)
         {
@@ -49,7 +49,7 @@ public class GizmoController
             
             if (isDragging)
             {
-                Logger.Log($"Stopped dragging");
+                //Logger.Log($"Stopped dragging");
             }
             isDragging = false;
             dragAxis = null;
@@ -66,7 +66,7 @@ public class GizmoController
         Vector2 currentMousePos = new Vector2(x, y);
         Vector2 mouseDelta = currentMousePos - mouseStartPosition;
 
-        Logger.Log($"Mouse delta: {mouseDelta}, dragging {dragAxis} axis");
+        //Logger.Log($"Mouse delta: {mouseDelta}, dragging {dragAxis} axis");
 
         Vector3 movement = CalculateAxisMovement(mouseDelta, dragAxis.Value);
         
@@ -138,12 +138,9 @@ public class GizmoController
         }
         else
         {
-            var modelMatrixProperty = obj.GetType().GetProperty("ModelMatrix");
-            if (modelMatrixProperty?.CanWrite == true)
-            {
-                modelMatrixProperty.SetValue(obj, currentMatrix);
-            }
+            Logger.Log("UpdateObjectPosition failed as object is not a component");
         }
+        
     }
 
     private void OnSelectionChanged(IRenderable? obj)
@@ -155,7 +152,14 @@ public class GizmoController
             objectStartPosition = GetObjectPosition(selectedObject);
             dragStartPosition = objectStartPosition;
             
-            Logger.Log($"Started dragging on {gizmoAxis.Axis} axis");
+            //Logger.Log($"Started dragging on {gizmoAxis.Axis} axis");
+            return;
+        }
+        
+        if (obj == null)
+        {
+            selectedObject = null;
+            gizmoScene.SetGizmo(GizmoType.None, Matrix4x4.Identity);
             return;
         }
         
@@ -167,12 +171,7 @@ public class GizmoController
         isDragging = false;
         dragAxis = null;
         
-        if (obj == null)
-        {
-            selectedObject = null;
-            gizmoScene.SetGizmo(GizmoType.None, Matrix4x4.Identity);
-            return;
-        }
+       
 
         selectedObject = obj;
         

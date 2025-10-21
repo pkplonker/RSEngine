@@ -26,7 +26,8 @@ public class GizmoScene : IScene
     private (uint start, uint count) yAxisIndices;
     private (uint start, uint count) zAxisIndices;
     private Matrix4x4 modelMatrix;
-
+    private GizmoController.GizmoType currentGizmoType = GizmoController.GizmoType.None;
+    
     private static readonly GizmoSceneRenderer renderer = new GizmoSceneRenderer();
 
     public GizmoScene()
@@ -266,7 +267,7 @@ public class GizmoScene : IScene
 
     internal unsafe void RenderGeometry(IRenderer renderer, RenderPassData data, IRenderPass renderPass)
     {
-        if (!Enabled) return;
+        if (currentGizmoType == GizmoController.GizmoType.None) return;
 
         if (!initialized)
             Initialize(renderer.Gl);
@@ -343,6 +344,7 @@ public class GizmoScene : IScene
 
     public void SetGizmo(GizmoController.GizmoType currentGizmoType, Matrix4x4 objModelMatrix)
     {
+        this.currentGizmoType = currentGizmoType;
         modelMatrix = objModelMatrix;
     }
 }
