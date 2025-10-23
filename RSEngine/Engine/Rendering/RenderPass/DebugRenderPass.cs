@@ -1,4 +1,4 @@
-﻿using Silk.NET.Maths;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
 namespace Engine;
@@ -29,7 +29,6 @@ public abstract class DebugRenderPass : IRenderPass
 
     public virtual IRenderTarget? CreateRenderTarget(GL gl, uint width, uint height)
     {
-        // Default debug render target - same as picking but could be customized in derived classes
         unsafe
         {
             gl.GenFramebuffers(1, out Framebuffer framebuffer);
@@ -37,8 +36,8 @@ public abstract class DebugRenderPass : IRenderPass
 
             gl.GenTextures(1, out Silk.NET.OpenGL.Texture rt);
             gl.BindTexture(TextureTarget.Texture2D, rt.Handle);
-            gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba, width, height, 0, PixelFormat.Rgba,
-                PixelType.UnsignedByte, null);
+            gl.TexImage2D(TextureTarget.Texture2D, 0, (int)InternalFormat.Rgba8, width, height, 0, 
+                PixelFormat.Rgba, PixelType.UnsignedByte, null);
 
             gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
                 (int)TextureMinFilter.Linear);
@@ -48,8 +47,22 @@ public abstract class DebugRenderPass : IRenderPass
             gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
                 TextureTarget.Texture2D, rt.Handle, 0);
 
+            gl.GenRenderbuffers(1, out uint depthRenderbuffer);
+            gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthRenderbuffer);
+            gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.DepthComponent24, width, height);
+            gl.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment,
+                RenderbufferTarget.Renderbuffer, depthRenderbuffer);
+
+            var status = gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            if (status != GLEnum.FramebufferComplete)
+            {
+                Logging.Logger.Error($"Debug render target framebuffer is not complete! Status: {status}");
+            }
+
             gl.GenTextures(1, out Silk.NET.OpenGL.Texture dummyDepthTexture);
+            
             gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, 0);
 
             return new PickingRenderTarget(framebuffer, rt, dummyDepthTexture, new Vector2D<int>((int)width, (int)height));
         }
@@ -59,6 +72,8 @@ public abstract class DebugRenderPass : IRenderPass
     {
         gl.Disable(GLEnum.CullFace);
         gl.Enable(GLEnum.DepthTest);
+        gl.DepthFunc(DepthFunction.Less);
+        gl.DepthMask(true);
         ConfigureDebugRenderState(gl);
         gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
     }
