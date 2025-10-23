@@ -6,8 +6,7 @@ public enum RenderTargetType
 {
     Main,
     Picking,
-    Debug,
-    MainWithWireframe
+    Debug
 }
 
 public class SceneRenderTargets
