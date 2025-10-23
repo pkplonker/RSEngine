@@ -80,6 +80,17 @@ public class GameObject : IInspectable
 			components.Remove(component);
 		}
 	}
+	
+	public T? GetOrAddComponent<T>() where T : class, IComponent
+	{
+		var existingComponent = GetComponent<T>();
+		if (existingComponent != null)
+		{
+			return existingComponent;
+		}
+    
+		return AddComponent<T>();
+	}
 
 	public void RemoveComponent(Type componentType)
 	{
