@@ -108,9 +108,8 @@ namespace Editor
             SceneController.OnActiveSceneChanged += (newScene, oldScene) =>
             {
                 renderer.RemoveScene(oldScene);
+                renderer.AddScene(newScene, new Vector2D<uint>(0, 0), out _, true);
                 var size = imGuiController.CurrentSize;
-                renderer.AddScene(newScene, new Vector2D<uint>((uint)size.X, (uint)size.Y), out _, true);
-
                 if (newScene != null)
                 {
                     newScene.ActiveCamera = editorCamera;
@@ -146,6 +145,7 @@ namespace Editor
         {
             renderer.RenderPassRegistry.RegisterRenderPass(selectionManager.GetSelectionPass());
             renderer.RenderPassRegistry.RegisterRenderPass(new WireframeDebugPass());
+            renderer.RenderPassRegistry.RegisterRenderPass(new MainWithWireframePass());
             selectionManager.SelectionChanged += OnSelectionChanged;
         }
 

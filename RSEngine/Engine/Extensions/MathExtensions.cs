@@ -71,8 +71,4 @@ public static class MathExtensions
 	}
 
 	public static float RadiansToDegrees(float radians) => (float) (radians * 180.0 / Math.PI);
-	public static float Lerp(float a, float b, float t)
-	{
-		return a + (b - a) * Math.Clamp(t, 0, 1);
-	}
 }
