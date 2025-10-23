@@ -251,7 +251,7 @@ public class TerrainEditor : IPanel
         var material = new Material();
         var metaData = new MaterialMetadata();
         ResourceManager.Instance.RegisterRuntimeResource(metaData, material);
-        material.Color = new Vector4(0, 1, 0, 1);
+        material.Color = new Vector4(25/255.0f, 102/255.0f, 25/255.0f, 1);
         material.ShaderGUID = ResourceManager.Instance.GetResourceByName(ResourceManager.DEFAULT_SHADER).GUID;
         return metaData;
     }
