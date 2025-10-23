@@ -1,5 +1,6 @@
 ﻿namespace Engine;
 
+/// Standard renderer for game object scenes that iterates through renderables
 public class StandardSceneRenderer : ISceneRenderer<IGameObjectScene>
 {
     public void RenderScene(IGameObjectScene scene, IRenderer renderer, IRenderPass renderPass, RenderPassData data)
