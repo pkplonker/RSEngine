@@ -12,7 +12,6 @@ public class Scene : Transform, IGameObjectScene
         sceneRenderer.RenderScene(this, renderer, renderPass, data);
     }
 
-
     public IEnumerable<IRenderable> Renderables =>
         ChildrenAsGameObjectsRecursive
             .Select(x => x.TryGetComponent<MeshRenderer>(out var component) ? component : null)
@@ -28,7 +27,6 @@ public class Scene : Transform, IGameObjectScene
 
         SceneID = IScene.GetNextId();
     }
-
 
     private string name = "Default Scene";
 
@@ -66,6 +64,8 @@ public class Scene : Transform, IGameObjectScene
 
     public void Update()
     {
+        // Only update game objects, not physics
+        // Physics is handled by PlayModeManager
         foreach (var go in ChildrenAsGameObjectsRecursive)
         {
             go?.Update();
@@ -90,9 +90,26 @@ public class Scene : Transform, IGameObjectScene
         children.Clear();
     }
 
-    public void AddGameObject(GameObject cameraGo)
+    public void AddGameObject(GameObject gameObject)
     {
-        cameraGo.Transform.SetParent(this);
+        gameObject.Transform.SetParent(this);
+        
+        // Notify play mode manager if in play mode
+        if (PlayModeManager.Instance.CurrentMode == PlayMode.Play)
+        {
+            PlayModeManager.Instance.OnGameObjectCreated(gameObject);
+        }
+    }
+
+    public void RemoveGameObject(GameObject gameObject)
+    {
+        gameObject.Transform.SetParent(null);
+        
+        // Notify play mode manager if in play mode
+        if (PlayModeManager.Instance.CurrentMode == PlayMode.Play)
+        {
+            PlayModeManager.Instance.OnGameObjectDestroyed(gameObject);
+        }
     }
 
     public IRenderable? ResolveSelection(PickedObject pickingObject) =>

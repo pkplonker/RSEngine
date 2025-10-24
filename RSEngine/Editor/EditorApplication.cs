@@ -167,6 +167,7 @@ namespace Editor
         protected override void OnCustomUpdate(double deltaTime)
         {
             imGuiController?.ImGuiControllerUpdate((float)deltaTime, activeScenes);
+            PlayModeManager.Instance.Update((float)deltaTime);
         }
 
       

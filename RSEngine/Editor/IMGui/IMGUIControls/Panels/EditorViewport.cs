@@ -67,6 +67,11 @@ public class EditorViewport
         ImGui.Begin(panelName,
             ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
+        // Play Mode Controls
+        RenderPlayModeControls(scene);
+        
+        ImGui.Separator();
+
         var enumValues = Enum.GetValues<RenderTargetType>();
         
         var width = ImGui.GetContentRegionAvail().X/2;
@@ -146,6 +151,97 @@ public class EditorViewport
         }
 
         ImGui.End();
+    }
+
+    private void RenderPlayModeControls(IScene scene)
+    {
+        var playMode = PlayModeManager.Instance.CurrentMode;
+        
+        // Style the buttons based on play mode state
+        var buttonSize = new Vector2(80, 0);
+        
+        // Play button - green when playing
+        if (playMode == PlayMode.Play)
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.2f, 0.8f, 0.2f, 1f));
+        else
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.3f, 0.3f, 0.3f, 1f));
+        
+        if (ImGui.Button("▶ Play", buttonSize))
+        {
+            if (playMode == PlayMode.Edit)
+            {
+                if (scene is Scene gameScene)
+                {
+                    PlayModeManager.Instance.SetActiveScene(gameScene);
+                    PlayModeManager.Instance.EnterPlayMode();
+                }
+            }
+        }
+        ImGui.PopStyleColor();
+        
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Enter Play Mode (F5)");
+        
+        ImGui.SameLine();
+        
+        // Pause button - yellow when paused
+        if (playMode == PlayMode.Paused)
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.8f, 0.8f, 0.2f, 1f));
+        else
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.3f, 0.3f, 0.3f, 1f));
+        
+        ImGui.BeginDisabled(playMode == PlayMode.Edit);
+        if (ImGui.Button("⏸ Pause", buttonSize))
+        {
+            if (playMode == PlayMode.Play || playMode == PlayMode.Paused)
+            {
+                PlayModeManager.Instance.TogglePause();
+            }
+        }
+        ImGui.EndDisabled();
+        ImGui.PopStyleColor();
+        
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Pause/Resume (F6)");
+        
+        ImGui.SameLine();
+        
+        // Stop button - red
+        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.8f, 0.2f, 0.2f, 1f));
+        ImGui.BeginDisabled(playMode == PlayMode.Edit);
+        if (ImGui.Button("⏹ Stop", buttonSize))
+        {
+            if (playMode != PlayMode.Edit)
+            {
+                PlayModeManager.Instance.ExitPlayMode();
+            }
+        }
+        ImGui.EndDisabled();
+        ImGui.PopStyleColor();
+        
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Exit Play Mode (Shift+F5)");
+        
+        ImGui.SameLine();
+        
+        // Display current mode
+        var modeText = playMode switch
+        {
+            PlayMode.Edit => "Editing",
+            PlayMode.Play => "Playing",
+            PlayMode.Paused => "Paused",
+            _ => "Unknown"
+        };
+        
+        var modeColor = playMode switch
+        {
+            PlayMode.Edit => new Vector4(0.7f, 0.7f, 0.7f, 1f),
+            PlayMode.Play => new Vector4(0.2f, 1f, 0.2f, 1f),
+            PlayMode.Paused => new Vector4(1f, 1f, 0.2f, 1f),
+            _ => new Vector4(1f, 1f, 1f, 1f)
+        };
+        
+        ImGui.TextColored(modeColor, $"● {modeText}");
     }
 
     private IntPtr GetTextureHandle(IRenderTarget renderTarget)
