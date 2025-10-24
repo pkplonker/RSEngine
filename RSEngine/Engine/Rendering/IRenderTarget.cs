@@ -3,12 +3,11 @@ using Silk.NET.OpenGL;
 
 namespace Engine;
 
+/// Defines a render target that can be bound and resized
 public interface IRenderTarget
 {
-	public Vector2D<int> ViewportSize { get; set; }
-
-	public void Bind(GL gl);
-	public void ResizeViewport(GL gl, uint sizeX, uint sizeY);
-
-	public void ResizeWindow(GL gl, uint sizeX, uint sizeY);
+    Vector2D<int> ViewportSize { get; set; }
+    void Bind(GL gl);
+    void ResizeViewport(GL gl, uint sizeX, uint sizeY);
+    void ResizeWindow(GL gl, uint sizeX, uint sizeY);
 }

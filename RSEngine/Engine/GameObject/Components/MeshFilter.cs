@@ -53,7 +53,7 @@ public class MeshFilter : Component
     public void UpdateMesh(GL gl,Guid meshGuid, List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs,
         List<uint> indices)
     {
-        if (ResourceManager.Instance.TryGetResourceByGuid<Mesh>(meshGuid, out var meshResource))
+        if (!ResourceManager.Instance.TryGetResourceByGuid<Mesh>(meshGuid, out var meshResource))
         {
             Logger.Error($"Mesh with GUID {meshGuid} not found");
             return;
@@ -64,7 +64,7 @@ public class MeshFilter : Component
         var vertexArray = BuildVertices(vertices, normals, tangents, uvs);
         var indexArray = indices.ToArray();
 
-        //meshResource.UpdateMeshData(vertexArray, indexArray); todo
+        meshResource.UpdateMeshData(vertexArray, indexArray);
     }
 
     private void CreateMesh(GL gl,List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<uint> indices)
@@ -172,7 +172,7 @@ public class MeshFilter : Component
                 t = c1.LengthSquared() > c2.LengthSquared() ? c1 : c2;
             }
 
-            t = -n * Vector3.Dot(n, t);
+            t = t - n * Vector3.Dot(n, t);
             tangents[i] = Vector3.Normalize(t);
         }
 

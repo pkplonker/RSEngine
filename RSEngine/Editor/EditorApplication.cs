@@ -109,8 +109,13 @@ namespace Editor
             {
                 renderer.RemoveScene(oldScene);
                 var size = imGuiController.CurrentSize;
+                
+                if (size.X <= 0 || size.Y <= 0)
+                {
+                    size = new Vector2(window.Size.X, window.Size.Y);
+                }
+                
                 renderer.AddScene(newScene, new Vector2D<uint>((uint)size.X, (uint)size.Y), out _, true);
-
                 if (newScene != null)
                 {
                     newScene.ActiveCamera = editorCamera;
@@ -118,9 +123,8 @@ namespace Editor
                 }
                 activeScenes.Remove(oldScene);
                 activeScenes.Add(newScene);
-                activeScenes.Add(gizmoScene); // Re-add gizmo scene
+                activeScenes.Add(gizmoScene);
         
-                // Share the main scene's render targets with the gizmo scene
                 renderer.ShareRenderTargets(newScene, gizmoScene);
             };
 

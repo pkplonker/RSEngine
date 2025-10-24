@@ -2,6 +2,7 @@
 
 namespace Engine;
 
+/// Registry for managing render passes mapped to render target types
 public class RenderPassRegistry
 {
     private Dictionary<RenderTargetType, IRenderPass> renderPasses = new();

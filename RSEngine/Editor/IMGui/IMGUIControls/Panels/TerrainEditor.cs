@@ -23,6 +23,7 @@ public class TerrainEditor : IPanel
     private GameObject? currentTerrain;
     private float[,]? heightData;
     private Vector3? lastPaintPosition;
+    private IMetadata? terrainMaterial;
 
     private bool showWireframe = false;
     private bool showNormals = false;
@@ -183,6 +184,9 @@ public class TerrainEditor : IPanel
 
         currentTerrain = GameObjectFactory.CreateMesh(SceneController.ActiveScene);
         currentTerrain.Name = "Heightfield Terrain";
+        
+        // Reset the material for the new terrain
+        terrainMaterial = null;
 
         RegenerateMesh();
     }
@@ -199,8 +203,8 @@ public class TerrainEditor : IPanel
         int width = heightData.GetLength(0);
         int height = heightData.GetLength(1);
 
-        float centerOffsetX = (width - 1) * scale * 0.5f;
-        float centerOffsetZ = (height - 1) * scale * 0.5f;
+        float offsetX = (width - 1) * scale * 0.5f;
+        float offsetZ = (height - 1) * scale * 0.5f;
 
         // Generate vertices
         for (int z = 0; z < height; z++)
@@ -208,7 +212,7 @@ public class TerrainEditor : IPanel
             for (int x = 0; x < width; x++)
             {
                 float heightValue = heightData[x, z];
-                positions.Add(new Vector3(x * scale - centerOffsetX, heightValue, z * scale - centerOffsetZ));
+                positions.Add(new Vector3(x * scale - offsetX, heightValue, z * scale - offsetZ));
                 uvs.Add(new Vector2((float)x / (width - 1), (float)z / (height - 1)));
             }
         }
@@ -238,10 +242,16 @@ public class TerrainEditor : IPanel
 
         // Update mesh
         currentTerrain.GetOrAddComponent<MeshFilter>().UpdateMesh(gl, positions, normals, uvs, indices);
-        var material = GetDefaultMaterial();
-        if (material != null)
+        
+        // Only create material once per terrain
+        if (terrainMaterial == null)
         {
-            currentTerrain.GetOrAddComponent<MeshRenderer>().MaterialGuid = material.GUID;
+            terrainMaterial = GetDefaultMaterial();
+        }
+        
+        if (terrainMaterial != null)
+        {
+            currentTerrain.GetOrAddComponent<MeshRenderer>().MaterialGuid = terrainMaterial.GUID;
         }
         else
         {
@@ -254,7 +264,7 @@ public class TerrainEditor : IPanel
         var material = new Material();
         var metaData = new MaterialMetadata();
         ResourceManager.Instance.RegisterRuntimeResource(metaData, material);
-        material.Color = new Vector4(26/255.0f, 101/255.0f, 26/255.0f, 1);
+        material.Color = new Vector4(25/255.0f, 102/255.0f, 25/255.0f, 1);
         material.ShaderGUID = ResourceManager.Instance.GetResourceByName(ResourceManager.DEFAULT_SHADER).GUID;
         return metaData;
     }
@@ -322,12 +332,12 @@ public class TerrainEditor : IPanel
         int width = heightData.GetLength(0);
         int height = heightData.GetLength(1);
 
-        // Convert world position to heightfield coordinates
-        float centerOffsetX = (width - 1) * scale * 0.5f;
-        float centerOffsetZ = (height - 1) * scale * 0.5f;
+        float offsetX = (width - 1) * scale * 0.5f;
+        float offsetZ = (height - 1) * scale * 0.5f;
 
-        int centerX = (int)((worldPosition.X + centerOffsetX) / scale);
-        int centerZ = (int)((worldPosition.Z + centerOffsetZ) / scale);
+        // Convert world position to heightfield coordinates
+        int centerX = (int)Math.Round((worldPosition.X + offsetX) / scale);
+        int centerZ = (int)Math.Round((worldPosition.Z + offsetZ) / scale);
 
         int brushRadius = (int)Math.Ceiling(brushSize);
 
@@ -359,7 +369,7 @@ public class TerrainEditor : IPanel
                         heightData[px, pz] -= strength;
                         break;
                     case 2: // Flatten
-                        heightData[px, pz] = MathExtensions.Lerp(heightData[px, pz], targetHeight, falloff * 0.1f);
+                        heightData[px, pz] = MathHelper.Lerp(heightData[px, pz], targetHeight, falloff * 0.1f);
                         break;
                     case 3: // Smooth
                         heightData[px, pz] = SmoothHeight(px, pz, falloff * 0.1f);
@@ -399,7 +409,7 @@ public class TerrainEditor : IPanel
         }
 
         float average = sum / count;
-        return MathExtensions.Lerp(heightData[x, z], average, strength);
+        return MathHelper.Lerp(heightData[x, z], average, strength);
     }
 
     private void ClearTerrain()
@@ -420,11 +430,19 @@ public class TerrainEditor : IPanel
 
     private void ExportHeightmap()
     {
-        // Implement heightmap export to file (e.g., RAW or PNG format)
+        //todo
     }
 
     private void ImportHeightmap()
     {
-        // Implement heightmap import from file
+        //todo
+    }
+}
+
+public static class MathHelper
+{
+    public static float Lerp(float a, float b, float t)
+    {
+        return a + (b - a) * Math.Clamp(t, 0, 1);
     }
 }
