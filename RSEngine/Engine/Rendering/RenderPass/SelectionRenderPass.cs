@@ -1,23 +1,34 @@
 ﻿using System.Numerics;
+using Engine.Logging;
 using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
 namespace Engine;
 
-/// Render pass for object picking that encodes object and scene IDs as colors
+/// <summary>
+/// Render pass for object picking that encodes object and scene IDs as colors.
+/// Uses depth testing to ensure only the topmost object at each pixel is selectable.
+/// </summary>
 public class SelectionRenderPass : IRenderPass
 {
     public RenderTargetType TargetType => RenderTargetType.Picking;
     public string Name => "Selection";
 
-    private readonly IShader? pickingShader;
-
-    public SelectionRenderPass()
+    private IShader? pickingShader;
+    private IShader? PickingShader
     {
-        var res = ResourceManager.Instance.GetResourceByName("Picking");
-        if (res != null && ResourceManager.Instance.TryGetResourceByGuid<Shader>(res.GUID, out var shader))
+        get
         {
-            pickingShader = shader;
+            if (pickingShader == null)
+            {
+                var res = ResourceManager.Instance.GetResourceByName("Picking");
+                if (res != null && ResourceManager.Instance.TryGetResourceByGuid<Engine.Shader>(res.GUID, out var ps))
+                {
+                    pickingShader = ps;
+                }
+            }
+
+            return pickingShader;
         }
     }
 
@@ -29,7 +40,9 @@ public class SelectionRenderPass : IRenderPass
     public void ConfigureRenderState(GL gl)
     {
         gl.Disable(GLEnum.CullFace);
-        gl.Disable(GLEnum.DepthTest);
+        gl.Enable(GLEnum.DepthTest);
+        gl.DepthFunc(DepthFunction.Less);
+        gl.DepthMask(true);
         gl.Disable(GLEnum.Blend);
         gl.ClearColor(0, 0, 0, 0);
         gl.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
@@ -38,7 +51,7 @@ public class SelectionRenderPass : IRenderPass
 
     public void RenderComponent(IRenderable component, RenderPassData data, IScene scene, IRenderer renderer)
     {
-        if (pickingShader == null) return;
+        if (PickingShader == null) return;
         
         uint objectId = component.RenderID.Value;
         byte sceneId = scene.SceneID;
@@ -50,8 +63,8 @@ public class SelectionRenderPass : IRenderPass
         float a = ((packedId >> 24) & 0xFF) / 255.0f;
         
         component.Render(renderer, data,
-            new CustomShaderArgs(pickingShader,
-                () => pickingShader.SetUniform("uObjectColor", new Vector4(r, g, b, a))));
+            new CustomShaderArgs(PickingShader,
+                () => PickingShader.SetUniform("uObjectColor", new Vector4(r, g, b, a))));
     }
 
     public IRenderable? GetObjectAtPosition(IList<IScene> scenes, int screenX, int screenY, IRenderer renderer)

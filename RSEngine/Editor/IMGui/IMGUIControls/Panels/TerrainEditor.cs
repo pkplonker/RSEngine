@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Engine;
 using Engine.Logging;
 using ImGuiNET;
@@ -199,6 +199,9 @@ public class TerrainEditor : IPanel
         int width = heightData.GetLength(0);
         int height = heightData.GetLength(1);
 
+        float offsetX = (width - 1) * scale * 0.5f;
+        float offsetZ = (height - 1) * scale * 0.5f;
+
         // Generate vertices
         for (int z = 0; z < height; z++)
         {
@@ -206,6 +209,7 @@ public class TerrainEditor : IPanel
             {
                 float heightValue = heightData[x, z];
                 positions.Add(new Vector3(x * scale, heightValue, z * scale));
+                positions.Add(new Vector3(x * scale - offsetX, heightValue, z * scale - offsetZ));
                 uvs.Add(new Vector2((float)x / (width - 1), (float)z / (height - 1)));
             }
         }
@@ -319,9 +323,13 @@ public class TerrainEditor : IPanel
         int width = heightData.GetLength(0);
         int height = heightData.GetLength(1);
 
+        float offsetX = (width - 1) * scale * 0.5f;
+        float offsetZ = (height - 1) * scale * 0.5f;
+
         // Convert world position to heightfield coordinates
         int centerX = (int)(worldPosition.X / scale);
-        int centerZ = (int)(worldPosition.Z / scale);
+        int centerX = (int)Math.Round((worldPosition.X + offsetX) / scale);
+        int centerZ = (int)Math.Round((worldPosition.Z + offsetZ) / scale);
 
         int brushRadius = (int)Math.Ceiling(brushSize);
 
@@ -414,12 +422,12 @@ public class TerrainEditor : IPanel
 
     private void ExportHeightmap()
     {
-        // Implement heightmap export to file (e.g., RAW or PNG format)
+        //todo
     }
 
     private void ImportHeightmap()
     {
-        // Implement heightmap import from file
+        //todo
     }
 }
 

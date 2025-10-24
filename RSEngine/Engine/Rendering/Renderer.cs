@@ -8,7 +8,10 @@ using Silk.NET.Windowing;
 
 namespace Engine;
 
-/// Main rendering system that manages scenes, render targets, and rendering pipeline execution
+/// <summary>
+/// Main rendering system that manages scenes, render targets, and the rendering pipeline.
+/// Handles framebuffer creation with depth buffers, render pass execution, and viewport management.
+/// </summary>
 public class Renderer : IRenderer
 {
     public GL Gl { get; private set; }
@@ -36,7 +39,9 @@ public class Renderer : IRenderer
         {
             var sceneRenderTargets = new SceneRenderTargets();
 
-            var mainTarget = GenerateMainRenderTarget(size.X, size.Y, toFrameBuffer);
+            var mainTarget = toFrameBuffer 
+                ? RenderTargetFactory.Create(Gl, RenderTargetType.Main, size.X, size.Y)
+                : new RenderTarget((int)size.X, (int)size.Y);
             
             sceneRenderTargets.AddTarget(RenderTargetType.Main, mainTarget);
 
@@ -82,35 +87,37 @@ public class Renderer : IRenderer
         {
             ResetRenderStats();
 
-            unsafe
+            var processedRenderTargets = new Dictionary<IRenderTarget, HashSet<RenderTargetType>>();
+
+            foreach (var (scene, info) in scenes)
             {
-                var processedRenderTargets = new HashSet<IRenderTarget>();
-
-                foreach (var (scene, info) in scenes)
+                foreach (var (targetType, renderTarget) in info.Targets.GetAllTargets())
                 {
-                    foreach (var (targetType, renderTarget) in info.Targets.GetAllTargets())
+                    if (!processedRenderTargets.ContainsKey(renderTarget))
                     {
-                        bool isFirstSceneForTarget = !processedRenderTargets.Contains(renderTarget);
-                        RenderScene(renderTarget, scene, targetType, isFirstSceneForTarget);
-                        processedRenderTargets.Add(renderTarget);
+                        processedRenderTargets[renderTarget] = new HashSet<RenderTargetType>();
                     }
+                    
+                    bool shouldClear = !processedRenderTargets[renderTarget].Contains(targetType);
+                    RenderSceneToTarget(scene, renderTarget, targetType, shouldClear);
+                    processedRenderTargets[renderTarget].Add(targetType);
                 }
-
-                Gl.Viewport(0, 0, (uint)WindowSize.X, (uint)WindowSize.Y);
-                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             }
+
+            Gl.Viewport(0, 0, (uint)WindowSize.X, (uint)WindowSize.Y);
+            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
         }
     }
 
-    private void RenderScene(IRenderTarget renderTarget, IScene scene, RenderTargetType targetType, bool clearTarget)
+    private void RenderSceneToTarget(IScene scene, IRenderTarget renderTarget, RenderTargetType targetType, bool clearTarget)
     {
-        renderTarget.Bind(Gl);
-
         if (scene.ActiveCamera == null)
         {
             Logger.Warning("No active camera to render with");
             return;
         }
+
+        renderTarget.Bind(Gl);
 
         var renderPass = RenderPassRegistry.GetRenderPass(targetType);
 
@@ -202,47 +209,18 @@ public class Renderer : IRenderer
     public void SetRenderTargetSize(IScene? scene, Vector2D<float> size)
     {
         if (scene == null) return;
-        unsafe
+        
+        if (scenes.TryGetValue(scene, out var info))
         {
-            if (scenes.TryGetValue(scene, out var info))
+            foreach (var (_, target) in info.Targets.GetAllTargets())
             {
-                foreach (var (_, target) in info.Targets.GetAllTargets())
-                {
-                    target?.ResizeViewport(Gl, (uint)size.X, (uint)size.Y);
-                }
+                target?.ResizeViewport(Gl, (uint)size.X, (uint)size.Y);
             }
         }
     }
 
     public void Close()
     {
-    }
-
-    private unsafe IRenderTarget GenerateMainRenderTarget(uint sizeX, uint sizeY, bool useFrameBuffer)
-    {
-        if (useFrameBuffer)
-        {
-            Gl.GenFramebuffers(1, out Framebuffer framebuffer);
-            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, framebuffer.Handle);
-
-            Gl.GenTextures(1, out Silk.NET.OpenGL.Texture rt);
-            Gl.BindTexture(TextureTarget.Texture2D, rt.Handle);
-            Gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba, sizeX, sizeY, 0, PixelFormat.Rgba,
-                PixelType.UnsignedByte, null);
-
-            Gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                (int)TextureMinFilter.Linear);
-            Gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                (int)TextureMagFilter.Linear);
-
-            Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0,
-                TextureTarget.Texture2D, rt.Handle, 0);
-            return new FrameBufferRenderTarget(framebuffer, rt, new Vector2D<int>((int)sizeX, (int)sizeY));
-        }
-        else
-        {
-            return new RenderTarget((int)sizeX, (int)sizeY);
-        }
     }
 
     public unsafe void DrawElements(Silk.NET.OpenGL.PrimitiveType primativeType, uint indicesLength,
