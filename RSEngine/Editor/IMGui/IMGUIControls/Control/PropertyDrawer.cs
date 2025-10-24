@@ -376,16 +376,44 @@ public class PropertyDrawer : IPropertyDrawer
     
     private static void RenderDefaultControl(IMemberAdapter memberInfo, object component)
     {
-        // Fallback to your existing logic
         if (memberInfo?.MemberType == typeof(Vector4))
         {
             ImGuiHelpers.DrawVec4Color(memberInfo.Name, (Vector4)memberInfo.GetValue(component),
                 x => memberInfo.SetValue(component, x));
         }
+        else if (memberInfo?.MemberType == typeof(Vector3))
+        {
+	        ImGuiHelpers.DrawVec3(memberInfo.Name, (Vector3)memberInfo.GetValue(component),
+		        x => memberInfo.SetValue(component, x));
+        }
         else if (memberInfo?.MemberType == typeof(float))
         {
             var value = (float)memberInfo.GetValue(component);
             if (ImGui.DragFloat(memberInfo.Name, ref value))
+            {
+                memberInfo.SetValue(component, value);
+            }
+        }
+        else if (memberInfo?.MemberType == typeof(bool))
+        {
+            var value = (bool)memberInfo.GetValue(component);
+            if (ImGui.Checkbox(memberInfo.Name, ref value))
+            {
+                memberInfo.SetValue(component, value);
+            }
+        }
+        else if (memberInfo?.MemberType == typeof(int))
+        {
+            var value = (int)memberInfo.GetValue(component);
+            if (ImGui.DragInt(memberInfo.Name, ref value))
+            {
+                memberInfo.SetValue(component, value);
+            }
+        }
+        else if (memberInfo?.MemberType == typeof(string))
+        {
+            var value = (string)memberInfo.GetValue(component) ?? "";
+            if (ImGui.InputText(memberInfo.Name, ref value, 256))
             {
                 memberInfo.SetValue(component, value);
             }

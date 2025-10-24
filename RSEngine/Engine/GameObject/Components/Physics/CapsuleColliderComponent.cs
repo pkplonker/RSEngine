@@ -3,22 +3,24 @@ using BepuPhysics.Collidables;
 
 namespace Engine.Physics;
 
-public class SphereColliderComponent : ColliderComponent
+[ComponentName("Capsule Collider")]
+public class CapsuleColliderComponent : ColliderComponent
 {
-    public SphereColliderComponent(GameObject gameObject) : base(gameObject)
+    public CapsuleColliderComponent(GameObject gameObject) : base(gameObject)
     {
     }
 
     public float Radius { get; set; } = 0.5f;
+    public float Length { get; set; } = 2f;
     
     public override IShape CreateShape()
     {
-        return new Sphere(Radius);
+        return new Capsule(Radius, Length);
     }
     
     public override BodyInertia? ComputeInertia(float mass)
     {
-        var shape = new Sphere(Radius);
+        var shape = new Capsule(Radius, Length);
         return shape.ComputeInertia(mass);
     }
 }

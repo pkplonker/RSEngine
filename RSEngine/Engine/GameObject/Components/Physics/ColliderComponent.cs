@@ -4,7 +4,7 @@ using BepuPhysics.Collidables;
 
 namespace Engine.Physics;
 
-// Base collider component - no simulation knowledge
+[HideInInspector]
 public abstract class ColliderComponent : Component
 {
     protected ColliderComponent(GameObject gameObject) : base(gameObject)

@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Numerics;
+using System.Reflection;
 using Editor.IMGUIControls;
 using Editor.Properties;
 using Engine;
@@ -84,7 +85,11 @@ public class GameobjectCustomEditor : BaseCustomEditor
 		for (int i = 0; i < components.Count; i++)
 		{
 			var comp = components[i];
-			var cachedType = comp.GetType();
+			var compType = comp.GetType();
+			
+			// Skip components with HideInInspector attribute
+			if (compType.GetCustomAttribute<HideInInspectorAttribute>() != null)
+				continue;
 			
 			var contextMenuItems = new List<ContextMenuItem>
 			{
@@ -92,17 +97,18 @@ public class GameobjectCustomEditor : BaseCustomEditor
 				{
 					UndoManager.RecordAndPerform(
 						new Memento(
-							() => go.RemoveComponent(cachedType),
-							() => go.AddComponent(cachedType),
-							$"Removed component - {cachedType.Name}"
+							() => go.RemoveComponent(compType),
+							() => go.AddComponent(compType),
+							$"Removed component - {compType.Name}"
 						)
 					);
 				})
 			};
-			
+
+			var name = compType.GetCustomAttribute<ComponentNameAttribute>()?.Name ?? comp.GetType().Name;
 			propertyDrawer.CreateNestedHeader(
 				depth: 0,
-				name: $"{comp.GetType().Name}##Component_{i}",
+				name: $"{name}##Component_{i}",
 				content: () => propertyDrawer.ProcessProps(comp, 1),
 				contextMenuItems: contextMenuItems
 			);

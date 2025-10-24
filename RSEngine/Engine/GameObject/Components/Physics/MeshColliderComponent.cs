@@ -1,12 +1,14 @@
 ﻿using System.Numerics;
 using BepuPhysics;
 using BepuPhysics.Collidables;
+using Engine.Logging;
 
 namespace Engine.Physics;
 
+[ComponentName("Mesh Collider")]
 public class MeshColliderComponent : ColliderComponent
 {
-    private Engine.Mesh mesh;
+    private Guid meshGuid;
     
     // Reference to your mesh resource
     public MeshColliderComponent(GameObject gameObject) : base(gameObject)
@@ -15,21 +17,21 @@ public class MeshColliderComponent : ColliderComponent
 
     public string MeshResourceId { get; set; }
     
-    public Engine.Mesh Mesh
+    public Guid Mesh
     {
-        get => mesh;
-        set => mesh = value;
+        get => meshGuid;
+        set => meshGuid = value;
     }
     
     public override IShape CreateShape()
     {
-        if (mesh == null && !string.IsNullOrEmpty(MeshResourceId))
+        if (meshGuid == null && !string.IsNullOrEmpty(MeshResourceId))
         {
             // Try to load from resource manager todo
            
         }
         
-        if (mesh == null)
+        if (meshGuid == null)
         {
             throw new InvalidOperationException("Mesh is null. Set mesh before creating shape.");
         }
@@ -47,15 +49,19 @@ public class MeshColliderComponent : ColliderComponent
     
     public Triangle[] GetTriangles()
     {
-        if (mesh == null) return Array.Empty<Triangle>();
-    
-        var vertices = mesh.Vertices;  // float[]
-        var indices = mesh.Indices;    // uint[]
-    
-        // Your vertex format: 14 floats per vertex
-        // Layout: Position(3) + Normal(3) + ... (total 14 floats)
-        const int vertexStride = 14; // floats per vertex
-        const int positionOffset = 0; // position starts at index 0
+        if (meshGuid == null) return Array.Empty<Triangle>();
+
+        if (!ResourceManager.Instance.TryGetResourceByGuid(meshGuid, out var meshResource) || meshResource is not Mesh mesh)
+        {
+            Logger.Warning($"Failed to get mesh resource for mesh collider {meshGuid}");
+            return Array.Empty<Triangle>();
+        }
+
+        var vertices = mesh.Vertices; 
+        var indices = mesh.Indices; 
+        
+        const int vertexStride = 14;
+        const int positionOffset = 0; 
     
         var triangleCount = indices.Length / 3;
         var triangles = new Triangle[triangleCount];

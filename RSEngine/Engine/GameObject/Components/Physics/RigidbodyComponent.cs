@@ -2,6 +2,7 @@
 
 namespace Engine.Physics;
 
+[ComponentName("Rigidbody")]
 public class RigidbodyComponent : Component
 {
     private bool isKinematic = false;

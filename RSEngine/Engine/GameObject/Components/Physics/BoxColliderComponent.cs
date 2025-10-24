@@ -4,6 +4,7 @@ using BepuPhysics.Collidables;
 
 namespace Engine.Physics;
 
+[ComponentName("Box Collider")]
 public class BoxColliderComponent : ColliderComponent
 {
     public BoxColliderComponent(GameObject gameObject) : base(gameObject)
