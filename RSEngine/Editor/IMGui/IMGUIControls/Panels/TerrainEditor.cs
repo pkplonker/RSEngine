@@ -23,6 +23,7 @@ public class TerrainEditor : IPanel
     private GameObject? currentTerrain;
     private float[,]? heightData;
     private Vector3? lastPaintPosition;
+    private IMetadata? terrainMaterial;
 
     private bool showWireframe = false;
     private bool showNormals = false;
@@ -183,6 +184,9 @@ public class TerrainEditor : IPanel
 
         currentTerrain = GameObjectFactory.CreateMesh(SceneController.ActiveScene);
         currentTerrain.Name = "Heightfield Terrain";
+        
+        // Reset the material for the new terrain
+        terrainMaterial = null;
 
         RegenerateMesh();
     }
@@ -208,7 +212,6 @@ public class TerrainEditor : IPanel
             for (int x = 0; x < width; x++)
             {
                 float heightValue = heightData[x, z];
-                positions.Add(new Vector3(x * scale, heightValue, z * scale));
                 positions.Add(new Vector3(x * scale - offsetX, heightValue, z * scale - offsetZ));
                 uvs.Add(new Vector2((float)x / (width - 1), (float)z / (height - 1)));
             }
@@ -239,10 +242,16 @@ public class TerrainEditor : IPanel
 
         // Update mesh
         currentTerrain.GetOrAddComponent<MeshFilter>().UpdateMesh(gl, positions, normals, uvs, indices);
-        var material = GetDefaultMaterial();
-        if (material != null)
+        
+        // Only create material once per terrain
+        if (terrainMaterial == null)
         {
-            currentTerrain.GetOrAddComponent<MeshRenderer>().MaterialGuid = material.GUID;
+            terrainMaterial = GetDefaultMaterial();
+        }
+        
+        if (terrainMaterial != null)
+        {
+            currentTerrain.GetOrAddComponent<MeshRenderer>().MaterialGuid = terrainMaterial.GUID;
         }
         else
         {
@@ -327,7 +336,6 @@ public class TerrainEditor : IPanel
         float offsetZ = (height - 1) * scale * 0.5f;
 
         // Convert world position to heightfield coordinates
-        int centerX = (int)(worldPosition.X / scale);
         int centerX = (int)Math.Round((worldPosition.X + offsetX) / scale);
         int centerZ = (int)Math.Round((worldPosition.Z + offsetZ) / scale);
 
