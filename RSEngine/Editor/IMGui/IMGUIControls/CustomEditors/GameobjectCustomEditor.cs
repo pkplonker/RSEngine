@@ -80,9 +80,32 @@ public class GameobjectCustomEditor : BaseCustomEditor
 			ImGui.EndPopup();
 		}
 
-		foreach (var comp in go.GetComponents())
+		var components = go.GetComponents().ToList();
+		for (int i = 0; i < components.Count; i++)
 		{
-			propertyDrawer.DrawObject(comp);
+			var comp = components[i];
+			var cachedType = comp.GetType();
+			
+			var contextMenuItems = new List<ContextMenuItem>
+			{
+				new ContextMenuItem("Remove Component", () =>
+				{
+					UndoManager.RecordAndPerform(
+						new Memento(
+							() => go.RemoveComponent(cachedType),
+							() => go.AddComponent(cachedType),
+							$"Removed component - {cachedType.Name}"
+						)
+					);
+				})
+			};
+			
+			propertyDrawer.CreateNestedHeader(
+				depth: 0,
+				name: $"{comp.GetType().Name}##Component_{i}",
+				content: () => propertyDrawer.ProcessProps(comp, 1),
+				contextMenuItems: contextMenuItems
+			);
 		}
 	}
 }

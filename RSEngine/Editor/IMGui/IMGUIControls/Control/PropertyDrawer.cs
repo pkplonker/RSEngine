@@ -37,11 +37,11 @@ public class PropertyDrawer : IPropertyDrawer
 
 		if (ImGui.CollapsingHeader(name, ImGuiTreeNodeFlags.DefaultOpen | ImGuiTreeNodeFlags.Framed))
 		{
-			if (contextMenuItems != null && ImGui.BeginPopupContextItem("context_menu"))
+			if (contextMenuItems != null && ImGui.BeginPopupContextItem($"context_menu_{name}"))
 			{
 				foreach (var menuItem in contextMenuItems)
 				{
-					if (ImGui.MenuItem($"{menuItem?.Name}##"))
+					if (ImGui.MenuItem($"{menuItem?.Name}##{name}_{menuItem?.Name}"))
 					{
 						menuItem?.Action?.Invoke();
 					}
