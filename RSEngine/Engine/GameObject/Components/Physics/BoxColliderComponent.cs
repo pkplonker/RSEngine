@@ -21,6 +21,6 @@ public class BoxColliderComponent : ColliderComponent
     public override BodyInertia? ComputeInertia(float mass)
     {
         var shape = new Box(Size.X, Size.Y, Size.Z); 
-        return ComputeInertia(mass);
+        return shape.ComputeInertia(mass);
     }
 }

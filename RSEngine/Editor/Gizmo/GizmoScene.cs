@@ -10,7 +10,7 @@ public class GizmoScene : IScene
 
     private IShader? gizmoShader;
     private IShader? pickingShader;
-    private Matrix4x4 modelMatrix;
+    private IRenderable targetRenderable;
     private GizmoController.GizmoType currentGizmoType = GizmoController.GizmoType.None;
     
     private TranslationGizmo? translationGizmo;
@@ -136,7 +136,7 @@ public class GizmoScene : IScene
             renderer.Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         }
 
-        Matrix4x4 scaledModelMatrix = CalculateScreenSpaceGizmoMatrix(modelMatrix, data.View, data.Projection);
+        Matrix4x4 scaledModelMatrix = CalculateScreenSpaceGizmoMatrix(targetRenderable?.ModelMatrix ?? Matrix4x4.Identity, data.View, data.Projection);
 
         activeGizmo.Render(renderer.Gl, shader, scaledModelMatrix, data.View, data.Projection, isPicking, SceneID);
 
@@ -163,10 +163,10 @@ public class GizmoScene : IScene
         return scaleMatrix * translationMatrix;
     }
 
-    public void SetGizmo(GizmoController.GizmoType gizmoType, Matrix4x4 objModelMatrix)
+    public void SetGizmo(GizmoController.GizmoType gizmoType, IRenderable renderable)
     {
         this.currentGizmoType = gizmoType;
-        modelMatrix = objModelMatrix;
+        targetRenderable = renderable;
     }
     
     public void Dispose(GL gl)

@@ -80,7 +80,7 @@ public class GizmoController
         
         if (selectedObject != null)
         {
-            gizmoScene.SetGizmo(currentGizmoType, selectedObject.ModelMatrix);
+            gizmoScene.SetGizmo(currentGizmoType, selectedObject);
         }
     }
 
@@ -118,7 +118,7 @@ public class GizmoController
 
         currentHandler.UpdateDrag(mouseDelta, selectedObject, camera);
         
-        gizmoScene.SetGizmo(currentGizmoType, selectedObject.ModelMatrix);
+        gizmoScene.SetGizmo(currentGizmoType, selectedObject);
     }
 
     private void OnSelectionChanged(IRenderable? obj)
@@ -137,7 +137,7 @@ public class GizmoController
         if (obj == null)
         {
             selectedObject = null;
-            gizmoScene.SetGizmo(GizmoType.None, Matrix4x4.Identity);
+            gizmoScene.SetGizmo(GizmoType.None, null);
             return;
         }
         
@@ -160,7 +160,7 @@ public class GizmoController
         }
         else
         {
-            gizmoScene.SetGizmo(currentGizmoType, obj.ModelMatrix);
+            gizmoScene.SetGizmo(currentGizmoType, obj);
         }
     }
 
