@@ -9,13 +9,30 @@ public class UserResourceManager : IAssetManager
 {
 	protected ConcurrentDictionary<Guid, IResource?> resources = new();
 	protected ConcurrentDictionary<Guid, IMetadata> metadatas = new();
+	protected Dictionary<MetadataType, IResourceLoader> loaders = new();
+	protected Dictionary<MetadataType, Type> resourceTypes = new();
 
 	protected GL gl;
 
 	public UserResourceManager(GL gl, string? directory)
 	{
 		this.gl = gl;
+		RegisterLoaders();
 		LoadMetadata(directory);
+	}
+
+	private void RegisterLoaders()
+	{
+		RegisterLoader(MetadataType.Texture, new TextureLoader(gl), typeof(Texture));
+		RegisterLoader(MetadataType.Material, new MaterialLoader(), typeof(Material));
+		RegisterLoader(MetadataType.Shader, new ShaderLoader(gl), typeof(Shader));
+		RegisterLoader(MetadataType.Mesh, new MeshLoader(gl), typeof(Mesh));
+	}
+
+	private void RegisterLoader(MetadataType type, IResourceLoader loader, Type resourceType)
+	{
+		loaders[type] = loader;
+		resourceTypes[type] = resourceType;
 	}
 
 	public void LoadMetadata(string? root)
@@ -94,30 +111,16 @@ public class UserResourceManager : IAssetManager
 	private bool TryLoadResource(Guid guid, IMetadata metadata, out IResource? result)
 	{
 		result = null;
-		Func<IMetadata, IResource> loaderFunction;
 
-		switch (metadata.MetadataType)
+		if (!loaders.TryGetValue(metadata.MetadataType, out var loader))
 		{
-			case MetadataType.Texture:
-				loaderFunction = LoadTexture;
-				break;
-			case MetadataType.Material:
-				loaderFunction = LoadMaterial;
-				break;
-			case MetadataType.Shader:
-				loaderFunction = LoadShader;
-				break;
-			case MetadataType.Mesh:
-				loaderFunction = LoadMesh;
-				break;
-			default:
-				Logger.Warning($"Trying to request invalid resource type from guid");
-				return false;
+			Logger.Warning($"No loader registered for resource type {metadata.MetadataType}");
+			return false;
 		}
 
 		if (!resources.TryGetValue(guid, out var resource))
 		{
-			resource = loaderFunction(metadata);
+			resource = loader.Load(metadata);
 			if (resource != null)
 			{
 				resources[guid] = resource;
@@ -126,58 +129,6 @@ public class UserResourceManager : IAssetManager
 
 		result = resource;
 		return result != null;
-	}
-
-	private Texture? LoadTexture(IMetadata metadata)
-	{
-		try
-		{
-			return new Texture(gl, metadata.Path.MakeProjectAbsolute(), metadata.GUID);
-		}
-		catch (Exception e)
-		{
-			Logger.Warning($"Failed to load texture {e}");
-			return null;
-		}
-	}
-
-	private Material? LoadMaterial(IMetadata metadata)
-	{
-		try
-		{
-			return (Material) ObjectSerializer.Deserialize(metadata.Path.MakeProjectAbsolute());
-		}
-		catch (Exception e)
-		{
-			Logger.Warning($"Failed to load material {e}");
-			return null;
-		}
-	}
-
-	private Shader? LoadShader(IMetadata metadata)
-	{
-		try
-		{
-			return new Shader(gl, metadata.Path.MakeProjectAbsolute(), metadata.GUID);
-		}
-		catch (Exception e)
-		{
-			Logger.Warning($"Failed to generate shader {e}");
-			return null;
-		}
-	}
-
-	private Mesh? LoadMesh(IMetadata metadata)
-	{
-		try
-		{
-			return ModelLoader.LoadModel(gl, metadata.Path.MakeProjectAbsolute(), metadata.GUID);
-		}
-		catch (Exception e)
-		{
-			Logger.Warning($"Failed to load mesh {e}");
-			return null;
-		}
 	}
 
 	public bool AddMetaData(IMetadata metadata)
@@ -236,7 +187,6 @@ public class UserResourceManager : IAssetManager
 
 		return false;
 	}
-	
 
 	public void ReleaseResource(Guid guid)
 	{
@@ -277,5 +227,34 @@ public class UserResourceManager : IAssetManager
 		// {
 		// 	ObjectSerializer.Serialize(resource, metadata.Path.MakeProjectAbsolute());
 		// }
+	}
+
+	public IResource RegisterRuntimeResource(IMetadata metadata, object resource)
+	{
+		if (resource is not IResource resourceInstance)
+		{
+			throw new ArgumentException("Resource parameter must implement IResource", nameof(resource));
+		}
+
+		if (!resourceTypes.TryGetValue(metadata.MetadataType, out var expectedType))
+		{
+			throw new ArgumentException($"Unknown metadata type {metadata.MetadataType}", nameof(metadata));
+		}
+
+		if (!expectedType.IsInstanceOfType(resource))
+		{
+			throw new ArgumentException(
+				$"Resource type {resource.GetType().Name} does not match expected type {expectedType.Name} for metadata type {metadata.MetadataType}", 
+				nameof(resource));
+		}
+
+		if (!metadatas.ContainsKey(metadata.GUID))
+		{
+			AddMetaData(metadata);
+		}
+
+		resources[metadata.GUID] = resourceInstance;
+
+		return resourceInstance;
 	}
 }

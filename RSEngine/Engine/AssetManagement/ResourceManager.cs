@@ -148,4 +148,9 @@ public class ResourceManager : IAssetManager
 	public IMetadata? GetMetadata(Guid guid) => assetManager?.GetMetadata(guid);
 
 	public Type? GetTypeFromGuid(Guid guid) => assetManager?.GetTypeFromGuid(guid);
+
+	public IResource RegisterRuntimeResource(IMetadata meshMetadata, object resource)
+	{
+		return assetManager.RegisterRuntimeResource(meshMetadata, resource);
+	}
 }

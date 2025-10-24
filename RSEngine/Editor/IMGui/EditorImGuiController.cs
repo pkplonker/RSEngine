@@ -37,6 +37,7 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
     private bool showDemo;
     private readonly EditorViewport editorViewport;
     private CreateProjectWindow createProjectWindow;
+    private readonly GL gl;
     private const string EDITOR_CATEGORY = "EditorPanels";
 
     public IInspectable? SelectedObject
@@ -58,6 +59,7 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
         createProjectWindow = new CreateProjectWindow();
         this.renderer = renderer;
         imGuiController = new ImGuiController(gl, view, input);
+        this.gl = gl;
         var io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
@@ -97,6 +99,7 @@ public class EditorImGuiController : IDisposable, ISelectableObjectController
         controls.Add(new MetadataPanel(), true);
         controls.Add(new ProjectPanel(inputController), true);
         controls.Add(new ContentBrowser(selectable => SelectedObject = selectable), true);
+        controls.Add(new TerrainEditor(gl), true);
 
         foreach (var control in controls)
         {

@@ -20,4 +20,5 @@ public interface IAssetManager
 	IMetadata? GetMetadata(Guid guid);
 	bool TryGetResourceByGuid(Guid guid, out IResource? result);
 	Type? GetTypeFromGuid(Guid guid);
+	IResource RegisterRuntimeResource(IMetadata meshMetadata, object resource);
 }
