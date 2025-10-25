@@ -144,6 +144,17 @@ namespace Editor
             {
                 Logger.Warning($"Failed to init filewatcher {e}");
             }
+
+            PlayModeManager.Instance.OnPlayModeChanged += OnPlayModeChanged;
+
+        }
+
+        private void OnPlayModeChanged(PlayMode oldMode, PlayMode newMode)
+        {
+            if (oldMode == PlayMode.Play && newMode == PlayMode.Edit)
+            {
+              selectionManager.ClearSelection();
+            }
         }
 
         private void SetupRenderPasses()

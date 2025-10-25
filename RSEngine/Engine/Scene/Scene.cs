@@ -1,4 +1,6 @@
-﻿namespace Engine;
+﻿using Editor;
+
+namespace Engine;
 
 [Inspectable]
 public class Scene : Transform, IGameObjectScene
