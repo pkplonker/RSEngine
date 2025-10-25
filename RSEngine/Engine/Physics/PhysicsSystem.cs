@@ -2,6 +2,7 @@
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities.Memory;
+using Engine.Logging;
 
 namespace Engine.Physics;
 
@@ -25,7 +26,13 @@ public class PhysicsSystem
     {
         bufferPool = new BufferPool();
 
-        var targetThreadCount = Environment.ProcessorCount > 4 ? Environment.ProcessorCount - 2 : 2;
+        var targetThreadCount = Environment.ProcessorCount switch
+        {
+            <= 4 => 2,
+            <= 8 => 4,
+            <= 16 => 6,
+            _ => 8
+        };
 
         simulation = Simulation.Create(
             bufferPool,
@@ -91,68 +98,91 @@ public class PhysicsSystem
 
         if (collider == null)
         {
-            return; // No collider, nothing to do
+            return;
         }
 
-        if (rigidbody != null)
+        try
         {
-            RegisterDynamicBody(gameObject, rigidbody, collider);
+            if (rigidbody != null)
+            {
+                RegisterDynamicBody(gameObject, rigidbody, collider);
+            }
+            else if (staticCollider != null)
+            {
+                RegisterStaticBody(gameObject, collider);
+            }
         }
-        else if (staticCollider != null)
+        catch (Exception ex)
         {
-            RegisterStaticBody(gameObject, collider);
+            Logger.Error($"ERROR registering {gameObject.Name}: {ex.Message}");
+            Logger.Error($"Stack trace: {ex.StackTrace}");
         }
     }
 
     private void RegisterDynamicBody(GameObject gameObject, RigidbodyComponent rigidbody, ColliderComponent collider)
     {
+        Logger.Log($"=== RegisterDynamicBody: {gameObject.Name} ===");
+
+        // Get transform scale
+        var transform = gameObject.Transform;
+        var scale = transform.Scale;
+
         // Create shape
         TypedIndex shapeIndex;
         Buffer<Triangle>? meshBuffer = null;
 
-        if (collider is MeshColliderComponent meshCollider)
+        try
         {
-            var triangles = meshCollider.GetTriangles();
-            bufferPool.Take<Triangle>(triangles.Length, out var buffer);
-
-            // Copy triangles using unsafe pointer access
-            unsafe
+            if (collider is BoxColliderComponent boxCollider)
             {
-                for (int i = 0; i < triangles.Length; i++)
+                // Apply transform scale to collider size
+                var scaledSize = boxCollider.Size * scale;
+
+                if (scaledSize.X <= 0 || scaledSize.Y <= 0 || scaledSize.Z <= 0)
                 {
-                    buffer[i] = triangles[i];
+                    throw new InvalidOperationException($"Box collider has invalid scaled size: {scaledSize}");
                 }
+
+                var box = new Box(scaledSize.X, scaledSize.Y, scaledSize.Z);
+                shapeIndex = simulation.Shapes.Add(box);
             }
+            else if (collider is SphereColliderComponent sphereCollider)
+            {
+                // For sphere, use the maximum scale component
+                var scaledRadius = sphereCollider.Radius * Math.Max(Math.Max(scale.X, scale.Y), scale.Z);
 
-            meshBuffer = buffer;
+                if (scaledRadius <= 0)
+                {
+                    throw new InvalidOperationException($"Sphere collider has invalid scaled radius: {scaledRadius}");
+                }
 
-            var meshShape = new BepuPhysics.Collidables.Mesh(buffer, Vector3.One, bufferPool);
-            shapeIndex = simulation.Shapes.Add(meshShape);
+                var sphere = new Sphere(scaledRadius);
+                shapeIndex = simulation.Shapes.Add(sphere);
+            }
+            else if (collider is CapsuleColliderComponent capsuleCollider)
+            {
+                // Capsule: radius uses XZ, length uses Y
+                var scaledRadius = capsuleCollider.Radius * Math.Max(scale.X, scale.Z);
+                var scaledLength = capsuleCollider.Length * scale.Y;
+
+                var capsule = new Capsule(scaledRadius, scaledLength);
+                shapeIndex = simulation.Shapes.Add(capsule);
+            }
+            else
+            {
+                throw new NotSupportedException($"Collider type {collider.GetType().Name} is not supported");
+            }
         }
-        else if (collider is BoxColliderComponent boxCollider)
+        catch (Exception ex)
         {
-            var box = new Box(boxCollider.Size.X, boxCollider.Size.Y, boxCollider.Size.Z);
-            shapeIndex = simulation.Shapes.Add(box);
-        }
-        else if (collider is SphereColliderComponent sphereCollider)
-        {
-            var sphere = new Sphere(sphereCollider.Radius);
-            shapeIndex = simulation.Shapes.Add(sphere);
-        }
-        else if (collider is CapsuleColliderComponent capsuleCollider)
-        {
-            var capsule = new Capsule(capsuleCollider.Radius, capsuleCollider.Length);
-            shapeIndex = simulation.Shapes.Add(capsule);
-        }
-        else
-        {
-            throw new NotSupportedException($"Collider type {collider.GetType().Name} is not supported");
+            Logger.Error($"  ERROR creating shape: {ex.Message}");
+            throw;
         }
 
         // Get transform
-        var transform = gameObject.Transform;
         var position = transform.Position + collider.Offset;
         var rotation = transform.Rotation;
+
 
         // Compute inertia
         BodyInertia inertia;
@@ -162,6 +192,12 @@ public class PhysicsSystem
         }
         else
         {
+
+            if (rigidbody.Mass <= 0)
+            {
+                throw new InvalidOperationException($"Rigidbody has invalid mass: {rigidbody.Mass}");
+            }
+
             var computedInertia = collider.ComputeInertia(rigidbody.Mass);
             inertia = computedInertia ?? new BodyInertia { InverseMass = 1f / rigidbody.Mass };
         }
@@ -186,10 +222,15 @@ public class PhysicsSystem
             Collider = collider,
             MeshBuffer = meshBuffer
         };
+        
     }
 
     private void RegisterStaticBody(GameObject gameObject, ColliderComponent collider)
     {
+
+        var transform = gameObject.Transform;
+        var scale = transform.Scale;
+
         // Create shape
         TypedIndex shapeIndex;
         Buffer<Triangle>? meshBuffer = null;
@@ -199,12 +240,17 @@ public class PhysicsSystem
             var triangles = meshCollider.GetTriangles();
             bufferPool.Take<Triangle>(triangles.Length, out var buffer);
 
-            // Copy triangles using unsafe pointer access
             unsafe
             {
+                // Apply scale to mesh vertices
                 for (int i = 0; i < triangles.Length; i++)
                 {
-                    buffer[i] = triangles[i];
+                    var tri = triangles[i];
+                    buffer[i] = new Triangle(
+                        tri.A * scale,
+                        tri.B * scale,
+                        tri.C * scale
+                    );
                 }
             }
 
@@ -215,17 +261,21 @@ public class PhysicsSystem
         }
         else if (collider is BoxColliderComponent boxCollider)
         {
-            var box = new Box(boxCollider.Size.X, boxCollider.Size.Y, boxCollider.Size.Z);
+            var scaledSize = boxCollider.Size * scale;
+            var box = new Box(scaledSize.X, scaledSize.Y, scaledSize.Z);
             shapeIndex = simulation.Shapes.Add(box);
         }
         else if (collider is SphereColliderComponent sphereCollider)
         {
-            var sphere = new Sphere(sphereCollider.Radius);
+            var scaledRadius = sphereCollider.Radius * Math.Max(Math.Max(scale.X, scale.Y), scale.Z);
+            var sphere = new Sphere(scaledRadius);
             shapeIndex = simulation.Shapes.Add(sphere);
         }
         else if (collider is CapsuleColliderComponent capsuleCollider)
         {
-            var capsule = new Capsule(capsuleCollider.Radius, capsuleCollider.Length);
+            var scaledRadius = capsuleCollider.Radius * Math.Max(scale.X, scale.Z);
+            var scaledLength = capsuleCollider.Length * scale.Y;
+            var capsule = new Capsule(scaledRadius, scaledLength);
             shapeIndex = simulation.Shapes.Add(capsule);
         }
         else
@@ -234,7 +284,6 @@ public class PhysicsSystem
         }
 
         // Get transform
-        var transform = gameObject.Transform;
         var position = transform.Position + collider.Offset;
         var rotation = transform.Rotation;
 

@@ -62,12 +62,12 @@
       "ChildrenGuids": [],
       "GUID": "c82057dc-84a0-4cb1-9510-d3626a672afe",
       "Position": {
-        "X": -2.0607643,
+        "X": 1.2592347,
         "Y": 0.3261702,
-        "Z": 0.0
+        "Z": -2.1155646
       },
       "Scale": {
-        "X": 1.825,
+        "X": 2.0,
         "Y": 1.0,
         "Z": 1.0
       },
@@ -89,6 +89,22 @@
       },
       "Engine.MeshRenderer, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
         "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efb"
+      },
+      "Engine.Physics.StaticColliderComponent, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {},
+      "Engine.Physics.BoxColliderComponent, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
+        "Size": {
+          "X": 1.0,
+          "Y": 1.0,
+          "Z": 1.0
+        },
+        "Friction": 1.0,
+        "Bounciness": 0.0,
+        "SpeculativeMargin": 0.1,
+        "Offset": {
+          "X": 0.0,
+          "Y": 0.0,
+          "Z": 0.0
+        }
       }
     }
   },
@@ -163,19 +179,12 @@
       "Engine.MeshRenderer, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
         "MaterialGuid": "9b15ce0f-978b-43ff-a42d-0f5530f45efc"
       },
-      "Engine.Physics.RigidbodyComponent, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
-        "IsKinematic": true,
-        "Mass": 1.0,
-        "UseGravity": false,
-        "Drag": 0.0,
-        "AngularDrag": 0.05,
-        "SleepThreshold": 0.01
-      },
+      "Engine.Physics.StaticColliderComponent, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {},
       "Engine.Physics.BoxColliderComponent, Engine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": {
         "Size": {
           "X": 50.0,
-          "Y": 50.0,
-          "Z": 1.0
+          "Y": 1.0,
+          "Z": 50.0
         },
         "Friction": 1.0,
         "Bounciness": 0.0,

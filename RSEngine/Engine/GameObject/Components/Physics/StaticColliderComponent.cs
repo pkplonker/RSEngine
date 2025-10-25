@@ -1,8 +1,7 @@
 ﻿namespace Engine.Physics;
 
-[HideInInspector]
-
-public abstract class StaticColliderComponent : Component
+[ComponentName("Static Collider")]
+public class StaticColliderComponent : Component
 {
     // Just a marker component - the physics system will handle it
     public StaticColliderComponent(GameObject gameObject) : base(gameObject)

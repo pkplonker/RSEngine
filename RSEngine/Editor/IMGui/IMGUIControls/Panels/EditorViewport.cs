@@ -67,15 +67,16 @@ public class EditorViewport
         ImGui.Begin(panelName,
             ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
 
-        // Play Mode Controls
-        RenderPlayModeControls(scene);
-        
-        ImGui.Separator();
-
         var enumValues = Enum.GetValues<RenderTargetType>();
         
-        var width = ImGui.GetContentRegionAvail().X/2;
-        ImGui.SetNextItemWidth(width);
+        var comboWidth = 300f;
+        
+        // Left side - Play Mode Controls
+        RenderPlayModeControls(scene);
+        
+        // Middle - Aspect Ratio
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(comboWidth);
         UndoableImGui.UndoableCombo("##aspectRatio", "Modified viewport aspect ratio", () => currentLevel,
             (val) =>
             {
@@ -84,14 +85,17 @@ public class EditorViewport
                 EditorSettings.SaveSetting(VIEWPORT_ASPECTRATIO, currentLevel);
             }, aspectRatios.Keys, 0, stretch: false, skipLabel:true);
 
+        // Right side - Render Pass
         ImGui.SameLine();
-        ImGui.SetNextItemWidth(width);
+        ImGui.SetNextItemWidth(comboWidth);
         UndoableImGui.UndoableCombo("##renderPass", "Changed viewport render pass", () => currentRenderPassIndex,
             (val) =>
             {
                 currentRenderPassIndex = val;
                 EditorSettings.SaveSetting(VIEWPORT_RENDERPASS, currentRenderPassIndex);
             }, Enum.GetNames<RenderTargetType>(), 0, stretch: false, skipLabel: true);
+        
+        ImGui.Separator();
 
         float usedHeight = ImGui.GetCursorPosY();
         Vector2 size = ImGui.GetContentRegionAvail();
@@ -157,67 +161,59 @@ public class EditorViewport
     {
         var playMode = PlayModeManager.Instance.CurrentMode;
         
-        // Style the buttons based on play mode state
-        var buttonSize = new Vector2(80, 0);
+        var buttonSize = new Vector2(70, 0);
         
-        // Play button - green when playing
+        // Play button
         if (playMode == PlayMode.Play)
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.2f, 0.8f, 0.2f, 1f));
-        else
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.3f, 0.3f, 0.3f, 1f));
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.2f, 0.6f, 0.2f, 1f));
         
-        if (ImGui.Button("▶ Play", buttonSize))
+        if (ImGui.Button("Play", buttonSize))
         {
-            if (playMode == PlayMode.Edit)
+            if (playMode == PlayMode.Edit && scene is Scene gameScene)
             {
-                if (scene is Scene gameScene)
-                {
-                    PlayModeManager.Instance.SetActiveScene(gameScene);
-                    PlayModeManager.Instance.EnterPlayMode();
-                }
+                PlayModeManager.Instance.SetActiveScene(gameScene);
+                PlayModeManager.Instance.EnterPlayMode();
             }
         }
-        ImGui.PopStyleColor();
+        
+        if (playMode == PlayMode.Play)
+            ImGui.PopStyleColor();
         
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Enter Play Mode (F5)");
         
         ImGui.SameLine();
         
-        // Pause button - yellow when paused
-        if (playMode == PlayMode.Paused)
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.8f, 0.8f, 0.2f, 1f));
-        else
-            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.3f, 0.3f, 0.3f, 1f));
-        
+        // Pause button
         ImGui.BeginDisabled(playMode == PlayMode.Edit);
-        if (ImGui.Button("⏸ Pause", buttonSize))
+        
+        if (playMode == PlayMode.Paused)
+            ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.8f, 0.6f, 0.2f, 1f));
+        
+        if (ImGui.Button("Pause", buttonSize))
         {
-            if (playMode == PlayMode.Play || playMode == PlayMode.Paused)
-            {
-                PlayModeManager.Instance.TogglePause();
-            }
+            PlayModeManager.Instance.TogglePause();
         }
+        
+        if (playMode == PlayMode.Paused)
+            ImGui.PopStyleColor();
+        
         ImGui.EndDisabled();
-        ImGui.PopStyleColor();
         
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Pause/Resume (F6)");
         
         ImGui.SameLine();
         
-        // Stop button - red
-        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.8f, 0.2f, 0.2f, 1f));
+        // Stop button
         ImGui.BeginDisabled(playMode == PlayMode.Edit);
-        if (ImGui.Button("⏹ Stop", buttonSize))
+        
+        if (ImGui.Button("Stop", buttonSize))
         {
-            if (playMode != PlayMode.Edit)
-            {
-                PlayModeManager.Instance.ExitPlayMode();
-            }
+            PlayModeManager.Instance.ExitPlayMode();
         }
+        
         ImGui.EndDisabled();
-        ImGui.PopStyleColor();
         
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip("Exit Play Mode (Shift+F5)");
@@ -241,7 +237,7 @@ public class EditorViewport
             _ => new Vector4(1f, 1f, 1f, 1f)
         };
         
-        ImGui.TextColored(modeColor, $"● {modeText}");
+        ImGui.TextColored(modeColor, $"{modeText}");
     }
 
     private IntPtr GetTextureHandle(IRenderTarget renderTarget)

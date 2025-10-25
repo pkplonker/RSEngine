@@ -33,7 +33,7 @@ public struct PoseIntegratorCallbacks : IPoseIntegratorCallbacks
         Vector<int> integrationMask, int workerIndex, Vector<float> dt, 
         ref BodyVelocityWide velocity)
     {
-        // Apply gravity to all dynamic bodies
+        // Apply gravity to all dynamic bodies //todo only when gravity enabled
         velocity.Linear.Y += Gravity.Y * dt;
     }
 }
